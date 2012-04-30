@@ -7,9 +7,10 @@ package woodcock;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.*;
-import java.util.LinkedList;
-import java.util.PriorityQueue;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 /**
  *
@@ -23,79 +24,211 @@ public class Master {
     public static void main(String[] args) {
         // TODO code application logic here
         int tick = 0;
+        int columns = 0;
+        int rows = 0;
+        int cIndex = 0;
+        int rIndex = 0;
         Charset charset = Charset.forName("US-ASCII");
-        Path path = Paths.get("test");
+        Path waterPath = Paths.get("test");
+        Path coverPath = Paths.get("test");
+        Path landPath = Paths.get("test");
+        HashMap<List<Integer>, Patch> patches = new HashMap<>();
         
         LinkedList<Patch> forestPatches = new LinkedList<>();
         LinkedList<Patch> grassPatches = new LinkedList<>();
         
         PriorityQueue<Patch> cutCandidates = new PriorityQueue<>();
         
-        try(BufferedReader reader = Files.newBufferedReader(path, charset))
+        try(BufferedReader reader = Files.newBufferedReader(waterPath, charset))
         {
-            reader.readLine();
+            /*
+             * The water depth data is used to create an R tree
+             * to cover areas where the ground is likely to be
+             * saturated. This is then searched to determine
+             * proximity of suitable foraging ground for woodcock
+             * habitats.
+             */
             String line = null;
+            line = reader.readLine();
+            String[] sCol = line.split("\\s+");
+            columns = Integer.parseInt(sCol[1]);
+            line = reader.readLine();
+            String[] sRow = line.split("\\s+");
+            rows = Integer.parseInt(sRow[1]);
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            
             while((line = reader.readLine()) != null)
             {
-                String cols[] = line.split(",");
-                int landCover = Integer.parseInt(cols[3]);
-                if(landCover == 255)
-                    continue;
-                int x = Integer.parseInt(cols[1]);
-                int y = Integer.parseInt(cols[2]);
-                int canopy = Integer.parseInt(cols[4]);
-                int lakeSize = Integer.parseInt(cols[8]);
-                int roadLength = Integer.parseInt(cols[9]);
-                int soil = Integer.parseInt(cols[10]);
-                
-                Patch patch = new Patch(x, y, landCover, lakeSize, roadLength, soil, canopy);
-                
-                /*
-                 * Three different spatial partitioning trees are created,
-                 * each one storing patches based on slightly different
-                 * information.
-                 */
-                /*
-                 * "Wet" regions to help determine if candidates are within
-                 * range of wet patches for foraging purposes.  May be replaced/
-                 * refined if we can get hydrology data.
-                 */
-                if(landCover == 11 || landCover == 90 || landCover == 95)
+                String cols[] = line.split("\\s+");
+                for(String col : cols)
                 {
-                    
+                    int wDepth = Integer.parseInt(col);
+                    if(wDepth != -9999)
+                    {
+                        Patch patch = new Patch(cIndex, rIndex);
+                        patch.waterDepth = wDepth;
+                        List<Integer> coord = Arrays.asList(cIndex, rIndex);
+                        patches.put(coord, patch);
+                        
+                        if(wDepth <= 30)
+                        {
+                            //Insert into R tree.
+                        }
+                    }
+                    ++cIndex;
                 }
                 
-                /*
-                 * Forested regions to check to make sure grasslands
-                 * are within range of suitable nesting areas before
-                 * being declared suitable habitats.
-                 */
-                if(landCover == 41 || landCover == 42 || landCover == 43)
-                {
-                    /*
-                     * Unilaterally add any forested patches to list.
-                     * We need to iterate through this list later to
-                     * determine whether it is already suitable habitat
-                     * or is "candidate" for cutting to become suitable.
-                     */
-                    forestPatches.add(patch);
-                }
-                
-                /*
-                 * Grassland.  If we ever decide to plant trees to
-                 * create habitat or require that cut candidates be
-                 * within some range of grasslands.
-                 */
-                if(landCover == 52 || landCover == 71 || landCover == 95)
-                {
-                    /*
-                     * Unilaterally add any grassland patches to list.
-                     * We need to iterate through this list later to
-                     * determine whether it is already suitable habitat.
-                     */
-                    grassPatches.add(patch);
-                }
+                ++rIndex;
+                cIndex = 0;
             }
+            
+            reader.close();
+        }
+        catch(IOException ioe)
+        {
+            System.err.format("IOException: %s\n", ioe);
+            System.exit(-1);
+        }
+        try(BufferedReader reader = Files.newBufferedReader(coverPath, charset))
+        {
+            cIndex = 0;
+            rIndex = 0;
+            String line = null;
+            line = reader.readLine();
+            String[] sCol = line.split("\\s+");
+            columns = Integer.parseInt(sCol[1]);
+            line = reader.readLine();
+            String[] sRow = line.split("\\s+");
+            rows = Integer.parseInt(sRow[1]);
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            while((line = reader.readLine()) != null)
+            {
+                String cols[] = line.split("\\s+");
+                for(String col : cols)
+                {
+                    int landCover = Integer.parseInt(col);
+                    if(landCover != -9999)
+                    {
+                        List<Integer> coord = Arrays.asList(cIndex, rIndex);
+                        Patch patch = patches.get(coord);
+                        if (patch == null) {
+                            patch = new Patch(cIndex, rIndex);
+                            patches.put(coord, patch);
+                        }
+                        patch.landCover = landCover;
+
+                        /*
+                         * Two different spatial partitioning trees are filled
+                         * in, each one storing patches based on slightly
+                         * different information.
+                         */
+
+                        /*
+                         * Forested regions to check to make sure grasslands are
+                         * within range of suitable nesting areas before being
+                         * declared suitable habitats.
+                         */
+
+                        /*
+                         * Unilaterally add any forested patches to list. We
+                         * need to iterate through this list later to determine
+                         * whether it is already suitable habitat or is
+                         * "candidate" for cutting to become suitable.
+                         */
+
+                        /*
+                         * Grassland. If we ever decide to plant trees to create
+                         * habitat or require that cut candidates be within some
+                         * range of grasslands.
+                         */
+
+                        /*
+                         * Unilaterally add any grassland patches to list. We
+                         * need to iterate through this list later to determine
+                         * whether it is already suitable habitat.
+                         */
+                    }
+                    
+                    ++cIndex;
+                }
+                
+                cIndex = 0;
+                ++rIndex;
+            }
+            
+            reader.close();
+        }
+        catch(IOException ioe)
+        {
+            System.err.format("IOException: %s\n", ioe);
+            System.exit(-1);
+        }
+        
+        try(BufferedReader reader = Files.newBufferedReader(landPath, charset))
+        {
+            /*
+             * The landing data indicates suitability of
+             * a patch for use landing harvested timber.
+             * This helps determine the profitability of
+             * harvesting specific patches based on distance
+             * from the target patch to the nearest landing
+             * patch.
+             */
+            String line = null;
+            line = reader.readLine();
+            String[] sCol = line.split("\\s+");
+            columns = Integer.parseInt(sCol[1]);
+            line = reader.readLine();
+            String[] sRow = line.split("\\s+");
+            rows = Integer.parseInt(sRow[1]);
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            
+            while((line = reader.readLine()) != null)
+            {
+                String cols[] = line.split("\\s+");
+                for(String col : cols)
+                {
+                    int landing = Integer.parseInt(col);
+                    if(landing != -9999)
+                    {
+                        List<Integer> coord = Arrays.asList(cIndex, rIndex);
+                        Patch patch = patches.get(coord);
+                        if (patch == null) {
+                            patch = new Patch(cIndex, rIndex);
+                            patches.put(coord, patch);
+                        }
+                        patch.landing = landing;
+                        
+                        /*
+                         * For now, let's only insert landings that are
+                         * very suitable for landing into the R tree. If
+                         * we feel like it, we can create another R tree
+                         * for the moderately suitable and attribute a cost
+                         * function of some sort for the two.
+                         */
+                        if(landing == 3)
+                        {
+                            
+                        }
+                    }
+                    
+                    ++cIndex;
+                }
+                
+                cIndex = 0;
+                ++rIndex;
+            }
+            
+            reader.close();
         }
         catch(IOException ioe)
         {
