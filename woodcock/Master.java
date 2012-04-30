@@ -48,8 +48,7 @@ public class Master {
              * proximity of suitable foraging ground for woodcock
              * habitats.
              */
-            String line = null;
-            line = reader.readLine();
+            String line = reader.readLine();;
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
             line = reader.readLine();
@@ -96,8 +95,7 @@ public class Master {
         {
             cIndex = 0;
             rIndex = 0;
-            String line = null;
-            line = reader.readLine();
+            String line = reader.readLine();;
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
             line = reader.readLine();
@@ -134,25 +132,32 @@ public class Master {
                          * within range of suitable nesting areas before being
                          * declared suitable habitats.
                          */
-
-                        /*
-                         * Unilaterally add any forested patches to list. We
-                         * need to iterate through this list later to determine
-                         * whether it is already suitable habitat or is
-                         * "candidate" for cutting to become suitable.
-                         */
+                        if(landCover == 141 || landCover == 142 || landCover == 143)
+                        {
+                            /*
+                             * Unilaterally add any forested patches to list. We
+                             * need to iterate through this list later to
+                             * determine whether it is already suitable habitat
+                             * or is "candidate" for cutting to become suitable.
+                             */
+                            forestPatches.add(patch);
+                        }
+                        
 
                         /*
                          * Grassland. If we ever decide to plant trees to create
                          * habitat or require that cut candidates be within some
                          * range of grasslands.
                          */
-
-                        /*
-                         * Unilaterally add any grassland patches to list. We
-                         * need to iterate through this list later to determine
-                         * whether it is already suitable habitat.
-                         */
+                        if(landCover == 152 || landCover == 171 || landCover ==195)
+                        {
+                            /*
+                             * Unilaterally add any grassland patches to list.
+                             * We need to iterate through this list later to
+                             * determine whether it is already suitable habitat.
+                             */
+                            grassPatches.add(patch);
+                        }
                     }
                     
                     ++cIndex;
@@ -180,8 +185,7 @@ public class Master {
              * from the target patch to the nearest landing
              * patch.
              */
-            String line = null;
-            line = reader.readLine();
+            String line = reader.readLine();;
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
             line = reader.readLine();
