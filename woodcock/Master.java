@@ -23,8 +23,8 @@ public class Master {
     public static void main(String[] args) {
         // TODO code application logic here
         int tick = 0;
-        int columns = 0;
-        int rows = 0;
+        int columns;
+        int rows;
         int cIndex = 0;
         int rIndex = 0;
         
@@ -335,6 +335,8 @@ public class Master {
                     throw new UnsupportedOperationException("Not supported yet.");
                 }
             });
+            
+            ++tick;
         }
     }
     
