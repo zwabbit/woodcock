@@ -55,7 +55,7 @@ public class Patch {
                 double x = (double)rand.nextInt(101) / 100.0;
                 double y = (double)rand.nextInt(101) / 100.0;
                 double sD = x/(x+y) * diameter;
-                int treeSize = rand.nextInt(13);
+                int treeSize = rand.nextInt(12);
                 ++trees[treeSize];
                 int treeDia = (treeSize + 1) * 2;
                 currentBasel += Calculation.BA * Math.pow(treeDia, 2);

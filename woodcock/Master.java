@@ -48,6 +48,7 @@ public class Master {
         
         Calculation.initializeWeightedRandom();
         Calculation.initializeGrowth();
+        System.err.println(System.getProperty("user.dir"));
         
         try
         {
@@ -332,7 +333,7 @@ public class Master {
                 public void run(int i) {
                     Patch p = finalForests.get(i);
                     p.growTrees();
-                    throw new UnsupportedOperationException("Not supported yet.");
+                    System.out.println(p.calcValue());
                 }
             });
             
