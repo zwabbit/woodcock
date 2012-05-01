@@ -54,8 +54,8 @@ public class Master {
              * proximity of suitable foraging ground for woodcock
              * habitats.
              */
-        	BufferedReader reader = Files.newBufferedReader(waterPath, charset);
-            String line = reader.readLine();;
+            BufferedReader reader = Files.newBufferedReader(waterPath, charset);
+            String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
             line = reader.readLine();
@@ -102,10 +102,10 @@ public class Master {
         }
         try
         {
-        	BufferedReader reader = Files.newBufferedReader(coverPath, charset);
+            BufferedReader reader = Files.newBufferedReader(coverPath, charset);
             cIndex = 0;
             rIndex = 0;
-            String line = reader.readLine();;
+            String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
             line = reader.readLine();
@@ -213,8 +213,8 @@ public class Master {
              * from the target patch to the nearest landing
              * patch.
              */
-        	BufferedReader reader = Files.newBufferedReader(landPath, charset);
-            String line = reader.readLine();;
+            BufferedReader reader = Files.newBufferedReader(landPath, charset);
+            String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
             line = reader.readLine();
