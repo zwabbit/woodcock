@@ -37,7 +37,7 @@ public class Master {
         Path landPath = Paths.get("landingsuitability.txt");
         HashMap<List<Integer>, Patch> patches = new HashMap<>();
         
-        LinkedList<Patch> forestPatches = new LinkedList<>();
+        ArrayList<Patch> forestPatches = new ArrayList<>();
         LinkedList<Patch> grassPatches = new LinkedList<>();
         
         PriorityQueue<Patch> cutCandidates = new PriorityQueue<>();
@@ -321,6 +321,21 @@ public class Master {
         System.out.println("grassPatches: " + grassPatches.size()); 
         // patch near water foraging area
         System.out.println("total forest patch near water foraging area: " + countSuitablePatch);
+        
+        final ArrayList<Patch> finalForests= forestPatches;
+        
+        while(true)
+        {
+            Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
+
+                @Override
+                public void run(int i) {
+                    Patch p = finalForests.get(i);
+                    p.growTrees();
+                    throw new UnsupportedOperationException("Not supported yet.");
+                }
+            });
+        }
     }
     
     /*
