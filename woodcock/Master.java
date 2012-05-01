@@ -101,24 +101,6 @@ public class Master {
                              * or is "candidate" for cutting to become suitable.
                              */
                             forestPatches.add(patch);
-                            int diameter = 0;
-                            switch(landCover)
-                            {
-                                case 141:
-                                    diameter = Calculation.conDefRand.next();
-                                    if(diameter == 10) diameter = Calculation.lessConDefRand.next();
-                                    break;
-                                case 142:
-                                    diameter = Calculation.decDefRand.next();
-                                    if(diameter == 10) diameter = Calculation.lessDecDefRand.next();
-                                    break;
-                                case 143:
-                                    diameter = Calculation.mixDefRand.next();
-                                    if(diameter == 10) diameter = Calculation.lessMixDefRand.next();
-                                    break;
-                            }
-                            
-                            patch.generateTrees(diameter);
                         }
                         
 
@@ -324,6 +306,38 @@ public class Master {
         System.out.println("total forest patch near water foraging area: " + countSuitablePatch);
         
         final ArrayList<Patch> finalForests= forestPatches;
+        
+        Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
+
+            @Override
+            public void run(int i) {
+                Patch patch = finalForests.get(i);
+                int diameter = 0;
+                switch (patch.landCover) {
+                    case 141:
+                        diameter = Calculation.conDefRand.next();
+                        if (diameter == 10) {
+                            diameter = Calculation.lessConDefRand.next();
+                        }
+                        break;
+                    case 142:
+                        diameter = Calculation.decDefRand.next();
+                        if (diameter == 10) {
+                            diameter = Calculation.lessDecDefRand.next();
+                        }
+                        break;
+                    case 143:
+                        diameter = Calculation.mixDefRand.next();
+                        if (diameter == 10) {
+                            diameter = Calculation.lessMixDefRand.next();
+                        }
+                        break;
+                }
+
+                patch.generateTrees(diameter);
+            }
+            
+        });
         
         while(true)
         {
