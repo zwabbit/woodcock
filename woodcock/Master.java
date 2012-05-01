@@ -27,6 +27,10 @@ public class Master {
         int rows = 0;
         int cIndex = 0;
         int rIndex = 0;
+        
+        int countSuitablePatch = 0; // for checking the total # of suitable patches for woodcock
+        							// check for both water patch in vicinity and suitability of nearby 
+        							// land for gathering lumber
         Charset charset = Charset.forName("US-ASCII");
         Path waterPath = Paths.get("wtdepthcmascii.txt");
         Path coverPath = Paths.get("cdl2011.txt");
@@ -278,13 +282,15 @@ public class Master {
              * Check hydrology info to see if this patch is a suitable
              * candidate for cutting.  If not, skip.
              */
-            // checking if water patch(or patch with suitable water concentration) 
-            // is within the range of 1
-            if(rangeQuery(waterDepth, x, y, 1) != null) {
-            	count++;
+            
+            // check if the forest patch is near to any lumber gathering area
+            // also, check if water patch(or patch with suitable water concentration) 
+            // is within the range of 1; unit distance is in acre
+            if(rangeQuery(timberSuitable, x, y, 100) != null) {
+            	if(rangeQuery(waterDepth, x, y, 1) != null) {
+            		countSuitablePatch++;
+            	}
             }
-            
-            
             /*
              * If a suitable candidate, check age of forest.  If already
              * below 10 years of age, add to list of usable habitats.  If
@@ -310,8 +316,20 @@ public class Master {
         System.out.println("forestpatches: " + forestPatches.size());  
         System.out.println("grassPatches: " + grassPatches.size()); 
         // patch near water foraging area
-        System.out.println("total forest patch near water foraging area: " + count);
+        System.out.println("total forest patch near water foraging area: " + countSuitablePatch);
     }
+    
+    /*
+     * Search associated rtree with point(x, y) coordinates as the centre point with the radius specified.
+     * Radius is in acre unit.  
+     * 
+     * @parameter	rtree - rtree to search from 
+     * @parameter	xCoor - xCoor of the centre point for the range search
+     * @parameter	yCoor - yCoor of the centre point for the range search
+     * @parameter	radius - radius from the point for the range search
+     * 
+     * @return 	one of the point within the range
+     */
     public static BoundedObject rangeQuery (RTree rtree, int xCoor, int yCoor, int radius) {
     	AABB o = new AABB(xCoor - radius, xCoor + radius, yCoor - radius, yCoor + radius);
     	return rtree.queryOne(o);
