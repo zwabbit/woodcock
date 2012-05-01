@@ -51,61 +51,6 @@ public class Master {
         
         try
         {
-            /*
-             * The water depth data is used to create an R tree
-             * to cover areas where the ground is likely to be
-             * saturated. This is then searched to determine
-             * proximity of suitable foraging ground for woodcock
-             * habitats.
-             */
-            BufferedReader reader = Files.newBufferedReader(waterPath, charset);
-            String line = reader.readLine();
-            String[] sCol = line.split("\\s+");
-            columns = Integer.parseInt(sCol[1]);
-            line = reader.readLine();
-            String[] sRow = line.split("\\s+");
-            rows = Integer.parseInt(sRow[1]);
-            reader.readLine();
-            reader.readLine();
-            reader.readLine();
-            reader.readLine();
-            
-            while((line = reader.readLine()) != null)
-            {
-                String cols[] = line.split("\\s+");
-                for(String col : cols)
-                {
-                    int wDepth = Integer.parseInt(col);
-                    if(wDepth != -9999)
-                    {
-                        Patch patch = new Patch(cIndex, rIndex);
-                        patch.waterDepth = wDepth;
-                        List<Integer> coord = Arrays.asList(cIndex, rIndex);
-                        patches.put(coord, patch);
-                        
-                        if(wDepth <= 30)
-                        {
-                            //Insert into R tree.
-                        	AABB box = new AABB(rIndex, cIndex);
-                        	waterDepth.insert(box);
-                        }
-                    }
-                    ++cIndex;
-                }
-                
-                ++rIndex;
-                cIndex = 0;
-            }
-            
-            reader.close();
-        }
-        catch(IOException ioe)
-        {
-            System.err.format("IOException: %s\n", ioe);
-            System.exit(-1);
-        }
-        try
-        {
             BufferedReader reader = Files.newBufferedReader(coverPath, charset);
             cIndex = 0;
             rIndex = 0;
@@ -197,6 +142,65 @@ public class Master {
                 
                 cIndex = 0;
                 ++rIndex;
+            }
+            
+            reader.close();
+        }
+        catch(IOException ioe)
+        {
+            System.err.format("IOException: %s\n", ioe);
+            System.exit(-1);
+        }
+        
+        try
+        {
+            /*
+             * The water depth data is used to create an R tree
+             * to cover areas where the ground is likely to be
+             * saturated. This is then searched to determine
+             * proximity of suitable foraging ground for woodcock
+             * habitats.
+             */
+            BufferedReader reader = Files.newBufferedReader(waterPath, charset);
+            String line = reader.readLine();
+            String[] sCol = line.split("\\s+");
+            columns = Integer.parseInt(sCol[1]);
+            line = reader.readLine();
+            String[] sRow = line.split("\\s+");
+            rows = Integer.parseInt(sRow[1]);
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            reader.readLine();
+            
+            while((line = reader.readLine()) != null)
+            {
+                String cols[] = line.split("\\s+");
+                for(String col : cols)
+                {
+                    int wDepth = Integer.parseInt(col);
+                    if(wDepth != -9999)
+                    {
+                        List<Integer> coord = Arrays.asList(cIndex, rIndex);
+                        Patch patch = patches.get(coord);
+                        if (patch == null) {
+                            patch = new Patch(cIndex, rIndex);
+                            patches.put(coord, patch);
+                        }
+                        patch.waterDepth = wDepth;
+                        
+                        if(wDepth <= 30 && patch.landCover != 111)
+                        {
+                            //Insert into R tree.
+                        	AABB box = new AABB(rIndex, cIndex);
+                        	waterDepth.insert(box);
+                        }
+                    }
+                    ++cIndex;
+                }
+                
+                ++rIndex;
+                cIndex = 0;
             }
             
             reader.close();
