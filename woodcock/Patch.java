@@ -66,4 +66,9 @@ public class Patch {
     {
         
     }
+    
+    public double calcValue()
+    {
+        return 0;
+    }
 }

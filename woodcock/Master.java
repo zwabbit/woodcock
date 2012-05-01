@@ -143,7 +143,6 @@ public class Master {
                              * or is "candidate" for cutting to become suitable.
                              */
                             forestPatches.add(patch);
-                            double treeSize[] = null;
                             int diameter = 0;
                             switch(landCover)
                             {
@@ -160,6 +159,8 @@ public class Master {
                                     if(diameter == 10) diameter = Calculation.lessMixDefRand.next();
                                     break;
                             }
+                            
+                            patch.generateTrees(diameter);
                         }
                         
 
