@@ -17,7 +17,6 @@ import java.util.*;
  * @author Z98
  */
 public class Master {
-
     /**
      * @param args the command line arguments
      */
@@ -38,6 +37,9 @@ public class Master {
         LinkedList<Patch> grassPatches = new LinkedList<>();
         
         PriorityQueue<Patch> cutCandidates = new PriorityQueue<>();
+        
+        Calculation.initializeWeightedRandom();
+        Calculation.initializeGrowth();
         
         try(BufferedReader reader = Files.newBufferedReader(waterPath, charset))
         {
@@ -141,6 +143,23 @@ public class Master {
                              * or is "candidate" for cutting to become suitable.
                              */
                             forestPatches.add(patch);
+                            double treeSize[] = null;
+                            int diameter = 0;
+                            switch(landCover)
+                            {
+                                case 141:
+                                    diameter = Calculation.conDefRand.next();
+                                    if(diameter == 10) diameter = Calculation.lessConDefRand.next();
+                                    break;
+                                case 142:
+                                    diameter = Calculation.decDefRand.next();
+                                    if(diameter == 10) diameter = Calculation.lessDecDefRand.next();
+                                    break;
+                                case 143:
+                                    diameter = Calculation.mixDefRand.next();
+                                    if(diameter == 10) diameter = Calculation.lessMixDefRand.next();
+                                    break;
+                            }
                         }
                         
 
