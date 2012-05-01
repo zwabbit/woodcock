@@ -16,6 +16,9 @@ public class Patch {
     public double[] trees = null;
     public static Random rand = null;
     
+    double[][] growthMatrix = null;
+    double ingrowthMatrix;
+    
     public Patch(int x, int y)
     {
         this.x = x;
@@ -64,7 +67,37 @@ public class Patch {
     
     public void growTrees()
     {
+        if(growthMatrix == null)
+        {
+            switch(landCover)
+            {
+                case 141:
+                    growthMatrix = Calculation.decGrowthMatrix;
+                    ingrowthMatrix = Calculation.decIngrowth;
+                    break;
+                case 142:
+                    growthMatrix = Calculation.conGrowthMatrix;
+                    ingrowthMatrix = Calculation.conIngrowth;
+                    break;
+                case 143:
+                    growthMatrix = Calculation.mixGrowthMatrix;
+                    ingrowthMatrix = Calculation.mixIngrowth;
+            }
+        }
         
+        double nextGrowth[] = new double[12];
+        for(int y = 0; y < 12; y++)
+        {
+            nextGrowth[y] = 0;
+            for(int x = 0; x < 12; x++)
+            {
+                nextGrowth[y] += trees[x] * growthMatrix[y][x];
+            }
+            
+            if(y == 0) nextGrowth[y] += ingrowthMatrix;
+        }
+        
+        trees = nextGrowth;
     }
     
     public double calcValue()

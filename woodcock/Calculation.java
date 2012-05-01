@@ -25,15 +25,15 @@ public class Calculation {
     
     public static double conUpgrowth[] = new double[12];
     public static double conMortality[] = new double[12];
-    public static double conIngrowth[] = new double[12];
+    public static double conIngrowth;
     
     public static double decUpgrowth[] = new double[12];
     public static double decMortality[] = new double[12];
-    public static double decIngrowth[] = new double[12];
+    public static double decIngrowth;
     
     public static double mixUpgrowth[] = new double[12];
     public static double mixMortality[] = new double[12];
-    public static double mixIngrowth[] = new double[12];
+    public static double mixIngrowth;
     
     public static double conGrowthMatrix[][] = new double[12][];
     public static double decGrowthMatrix[][] = new double[12][];
@@ -77,16 +77,20 @@ public class Calculation {
             
             conUpgrowth[index] = 0.0069 - 0.0001 * 0.005454 * Math.pow(diameter, 2) + 0.0059 * diameter - 0.0002 * Math.pow(diameter, 2);
             conMortality[index] = 0.0418 - 0.0009 * diameter;
-            conIngrowth[index] = 7.622 - 0.059 * 0.005454 * Math.pow(diameter, 2);
+            
             
             decUpgrowth[index] = 0.0164 - 0.0001 * 0.005454 * Math.pow(diameter, 2) + 0.0055 * diameter - 0.0002 * Math.pow(diameter, 2);
             decMortality[index] = 0.0336 - 0.0018 * diameter + 0.0001 * Math.pow(diameter, 2) - 0.00002 * sConstant * diameter;
-            decIngrowth[index] = 18.187 - 0.097 * 0.005454 * Math.pow(diameter, 2);
             
-            decUpgrowth[index] = 0.0134 - 0.0002 * 0.005454 * Math.pow(diameter, 2) + 0.0051 * diameter - 0.0002 * Math.pow(diameter, 2) + 0.00002 * sConstant * diameter;
-            decMortality[index] = 0.0417 - 0.0033 * diameter + 0.0001 * Math.pow(diameter, 2);
-            decIngrowth[index] = 4.603 - 0.035 * 0.005454 * Math.pow(diameter, 2);
+            
+            mixUpgrowth[index] = 0.0134 - 0.0002 * 0.005454 * Math.pow(diameter, 2) + 0.0051 * diameter - 0.0002 * Math.pow(diameter, 2) + 0.00002 * sConstant * diameter;
+            mixMortality[index] = 0.0417 - 0.0033 * diameter + 0.0001 * Math.pow(diameter, 2);
+            
         }
+        
+        conIngrowth = 7.622 - 0.059 * 0.005454 * 4;
+        decIngrowth = 18.187 - 0.097 * 0.005454 * 4;
+        decIngrowth = 4.603 - 0.035 * 0.005454 * 4;
         
         for(int index = 0; index < 11; index++)
         {
