@@ -28,9 +28,9 @@ public class Master {
         int cIndex = 0;
         int rIndex = 0;
         Charset charset = Charset.forName("US-ASCII");
-        Path waterPath = Paths.get("test");
-        Path coverPath = Paths.get("test");
-        Path landPath = Paths.get("test");
+        Path waterPath = Paths.get("wtdepthcmascii.txt");
+        Path coverPath = Paths.get("cdl2011.txt");
+        Path landPath = Paths.get("landingsuitability.txt");
         HashMap<List<Integer>, Patch> patches = new HashMap<>();
         
         LinkedList<Patch> forestPatches = new LinkedList<>();
@@ -38,10 +38,14 @@ public class Master {
         
         PriorityQueue<Patch> cutCandidates = new PriorityQueue<>();
         
+        // rtree for nearby water area and suitability for harvesting lumber
+        RTree waterDepth = new RTree(4, 8);
+        RTree timberSuitable = new RTree(4, 8);
+        
         Calculation.initializeWeightedRandom();
         Calculation.initializeGrowth();
         
-        try(BufferedReader reader = Files.newBufferedReader(waterPath, charset))
+        try
         {
             /*
              * The water depth data is used to create an R tree
@@ -50,6 +54,7 @@ public class Master {
              * proximity of suitable foraging ground for woodcock
              * habitats.
              */
+        	BufferedReader reader = Files.newBufferedReader(waterPath, charset);
             String line = reader.readLine();;
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
@@ -77,6 +82,8 @@ public class Master {
                         if(wDepth <= 30)
                         {
                             //Insert into R tree.
+                        	AABB box = new AABB(rIndex, cIndex);
+                        	waterDepth.insert(box);
                         }
                     }
                     ++cIndex;
@@ -93,8 +100,9 @@ public class Master {
             System.err.format("IOException: %s\n", ioe);
             System.exit(-1);
         }
-        try(BufferedReader reader = Files.newBufferedReader(coverPath, charset))
+        try
         {
+        	BufferedReader reader = Files.newBufferedReader(coverPath, charset);
             cIndex = 0;
             rIndex = 0;
             String line = reader.readLine();;
@@ -195,7 +203,7 @@ public class Master {
             System.exit(-1);
         }
         
-        try(BufferedReader reader = Files.newBufferedReader(landPath, charset))
+        try
         {
             /*
              * The landing data indicates suitability of
@@ -205,6 +213,7 @@ public class Master {
              * from the target patch to the nearest landing
              * patch.
              */
+        	BufferedReader reader = Files.newBufferedReader(landPath, charset);
             String line = reader.readLine();;
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
@@ -241,7 +250,8 @@ public class Master {
                          */
                         if(landing == 3)
                         {
-                            
+                        	AABB box = new AABB(rIndex, cIndex);
+                        	timberSuitable.insert(box);
                         }
                     }
                     
@@ -268,6 +278,12 @@ public class Master {
              * Check hydrology info to see if this patch is a suitable
              * candidate for cutting.  If not, skip.
              */
+            // checking if water patch(or patch with suitable water concentration) 
+            // is within the range of 1
+            if(rangeQuery(waterDepth, x, y, 1) != null) {
+            	count++;
+            }
+            
             
             /*
              * If a suitable candidate, check age of forest.  If already
@@ -278,5 +294,26 @@ public class Master {
              * information like road length to help determine ease of transport.
              */
         }
+        // test for rtree
+        System.out.println("count of waterdepth rtree: " + waterDepth.count());
+        AABB boxCheck = new AABB(300, 301, 956, 1000);
+        // search if the patch is inside the water depth rtree(water area suitable for foraging)
+        // return the range of coordinates if found(in (MinxCoor, MinyCoor):(MaxxCoor, MaxyCoor)), 
+        // return null if not
+        System.out.println("rtree query: " + waterDepth.queryOne(300, 956));    
+        System.out.println("rtree query: " + waterDepth.queryOne(300, 957));    
+        System.out.println("rtree query: " + waterDepth.queryOne(300, 1007));    
+        System.out.println("rtree query: " + waterDepth.queryOne(300, 1014));    
+        System.out.println("rtree query: " + waterDepth.queryOne(330, 1014));  
+        System.out.println("rtree query: " + waterDepth.queryOne(boxCheck)); 
+        // check if the rtree insert patch(x and y coordinates) correctly
+        System.out.println("forestpatches: " + forestPatches.size());  
+        System.out.println("grassPatches: " + grassPatches.size()); 
+        // patch near water foraging area
+        System.out.println("total forest patch near water foraging area: " + count);
+    }
+    public static BoundedObject rangeQuery (RTree rtree, int xCoor, int yCoor, int radius) {
+    	AABB o = new AABB(xCoor - radius, xCoor + radius, yCoor - radius, yCoor + radius);
+    	return rtree.queryOne(o);
     }
 }
