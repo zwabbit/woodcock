@@ -135,6 +135,8 @@ public class Master {
             System.exit(-1);
         }
         
+        System.out.println("Done reading in cover data");
+        
         try
         {
             /*
@@ -193,6 +195,8 @@ public class Master {
             System.err.format("IOException: %s\n", ioe);
             System.exit(-1);
         }
+        
+        System.out.println("Done reading in water data");
         
         try
         {
@@ -260,6 +264,8 @@ public class Master {
             System.err.format("IOException: %s\n", ioe);
             System.exit(-1);
         }
+        
+        System.out.println("Done loading in files.");
         
         for(Patch p : forestPatches)
         {
