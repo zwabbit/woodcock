@@ -44,13 +44,13 @@ public class Calculation {
     
     public static Random rand = new Random();
     
-    public static WeightedRandom<Integer> conDefRand = new WeightedRandom<>();
-    public static WeightedRandom<Integer> decDefRand = new WeightedRandom<>();
-    public static WeightedRandom<Integer> mixDefRand = new WeightedRandom<>();
+    public static WeightedRandom<Integer> conDefRand = new WeightedRandom<Integer>();
+    public static WeightedRandom<Integer> decDefRand = new WeightedRandom<Integer>();
+    public static WeightedRandom<Integer> mixDefRand = new WeightedRandom<Integer>();
         
-    public static WeightedRandom<Integer> lessConDefRand = new WeightedRandom<>();
-    public static WeightedRandom<Integer> lessDecDefRand = new WeightedRandom<>();
-    public static WeightedRandom<Integer> lessMixDefRand = new WeightedRandom<>();
+    public static WeightedRandom<Integer> lessConDefRand = new WeightedRandom<Integer>();
+    public static WeightedRandom<Integer> lessDecDefRand = new WeightedRandom<Integer>();
+    public static WeightedRandom<Integer> lessMixDefRand = new WeightedRandom<Integer>();
     
     public static void initializeWeightedRandom()
     {

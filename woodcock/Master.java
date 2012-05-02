@@ -20,10 +20,8 @@ public class Master {
     /**
      * @param args the command line arguments
      */
-    
     public static RTree waterDepth = null;
     public static RTree timberSuitable = null;
-
     public static void main(String[] args) {
         // TODO code application logic here
         int tick = 0;
@@ -31,7 +29,8 @@ public class Master {
         int rows;
         int cIndex = 0;
         int rIndex = 0;
-        
+        double leastprofit = 0.0;
+        double mostprofit = 0.0;
         int countSuitablePatch = 0; // for checking the total # of suitable patches for woodcock
         							// check for both water patch in vicinity and suitability of nearby 
         							// land for gathering lumber
@@ -39,16 +38,19 @@ public class Master {
         Path waterPath = Paths.get("wtdepthcmascii.txt");
         Path coverPath = Paths.get("cdl2011.txt");
         Path landPath = Paths.get("landingsuitability.txt");
-        HashMap<List<Integer>, Patch> patches = new HashMap<>();
+        HashMap<List<Integer>, Patch> patches = new HashMap<List<Integer>, Patch>(); // update every year
         
-        ArrayList<Patch> forestPatches = new ArrayList<>();
-        LinkedList<Patch> grassPatches = new LinkedList<>();
+        ArrayList<Patch> forestPatches = new ArrayList<Patch>();
+        LinkedList<Patch> grassPatches = new LinkedList<Patch>();
         
-        PriorityQueue<Patch> cutCandidates = new PriorityQueue<>();
+        
         
         // rtree for nearby water area and suitability for harvesting lumber
-        if(waterDepth == null) waterDepth = new RTree(4, 8);
-        if(timberSuitable == null) timberSuitable = new RTree(4, 8);
+        RTree waterDepth = new RTree(4, 8);
+        RTree timberSuitable = new RTree(4, 8);
+        RTree forestRtree = new RTree(4, 8);
+        RTree developedArea = new RTree(4, 8);
+        
         
         Calculation.initializeWeightedRandom();
         Calculation.initializeGrowth();
@@ -104,8 +106,12 @@ public class Master {
                              * determine whether it is already suitable habitat
                              * or is "candidate" for cutting to become suitable.
                              */
+                        	// insert into forest rtree to enable search for grassland area that is near forest
+                        	// for habitat purpose
+                        	AABB box = new AABB(rIndex, cIndex);
+                        	forestRtree.insert(box);
+                        	patch.age = Calculation.rand.nextInt(51);
                             forestPatches.add(patch);
-                            patch.age = Calculation.rand.nextInt(51);
                         }
                         
 
@@ -114,7 +120,7 @@ public class Master {
                          * habitat or require that cut candidates be within some
                          * range of grasslands.
                          */
-                        if(landCover == 152 || landCover == 171 || landCover ==195)
+                        if(landCover == 152 || landCover == 171 || landCover == 195)
                         {
                             /*
                              * Unilaterally add any grassland patches to list.
@@ -122,6 +128,13 @@ public class Master {
                              * determine whether it is already suitable habitat.
                              */
                             grassPatches.add(patch);
+                        }
+                        
+                        // get the patches that are developed area
+                        if(landCover >= 121 && landCover <= 124)
+                        {
+                        	AABB box = new AABB(rIndex, cIndex);
+                        	developedArea.insert(box);
                         }
                     }
                     
@@ -269,9 +282,12 @@ public class Master {
             System.err.format("IOException: %s\n", ioe);
             System.exit(-1);
         }
-        
+       
         System.out.println("Done loading in files.");
         
+        // Comparator for both PQueue
+        LumberCompany lumCompany = new LumberCompany(forestPatches.size());
+        WCConservation conservGroup = new WCConservation(forestPatches.size());
         for(Patch p : forestPatches)
         {
             int x = p.x;
@@ -281,14 +297,16 @@ public class Master {
              * candidate for cutting.  If not, skip.
              */
             
+            // calculate the value earned from the forest wood and store the profit in 
+            // p.lumberProfit for comparison against other forest patch in pqueue
+            p.calcValue();
+            // check if the patch is suitable for lumber
+            lumCompany.queueTimberPatch(timberSuitable, x, y, p);
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
-            if(rangeQuery(timberSuitable, x, y, 100) != null) {
-            	if(rangeQuery(waterDepth, x, y, 1) != null) {
-            		countSuitablePatch++;
-            	}
-            }
+            conservGroup.queueDevelopedPatch(developedArea, waterDepth, x, y, p);
+            
             /*
              * If a suitable candidate, check age of forest.  If already
              * below 10 years of age, add to list of usable habitats.  If
@@ -298,6 +316,15 @@ public class Master {
              * information like road length to help determine ease of transport.
              */
         }
+        
+        // pqueue for both lumber company and conservative group
+        PriorityQueue<Patch> lumberPQueue = new PriorityQueue<Patch>();
+        PriorityQueue<Patch> conserPQueue = new PriorityQueue<Patch>();
+        lumberPQueue = lumCompany.getPQueue();
+        System.out.println("lumberPQueue size : " + lumberPQueue.size());
+        conserPQueue = conservGroup.getPQueue();
+        System.out.println("conserPQueue : " + conserPQueue.size());
+
         // test for rtree
         System.out.println("count of waterdepth rtree: " + waterDepth.count());
         AABB boxCheck = new AABB(300, 301, 956, 1000);
@@ -315,8 +342,9 @@ public class Master {
         System.out.println("grassPatches: " + grassPatches.size()); 
         // patch near water foraging area
         System.out.println("total forest patch near water foraging area: " + countSuitablePatch);
+        System.out.println("most profit " + mostprofit + "\n least profit " + leastprofit);
         
-        final ArrayList<Patch> finalForests= forestPatches;
+        final ArrayList<Patch> finalForests = forestPatches;
         
         Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
 
@@ -360,24 +388,7 @@ public class Master {
                     p.growTrees();
                 }
             });
-            
             ++tick;
         }
-    }
-    
-    /*
-     * Search associated rtree with point(x, y) coordinates as the centre point with the radius specified.
-     * Radius is in acre unit.  
-     * 
-     * @parameter	rtree - rtree to search from 
-     * @parameter	xCoor - xCoor of the centre point for the range search
-     * @parameter	yCoor - yCoor of the centre point for the range search
-     * @parameter	radius - radius from the point for the range search
-     * 
-     * @return 	one of the point within the range
-     */
-    public static BoundedObject rangeQuery (RTree rtree, int xCoor, int yCoor, int radius) {
-    	AABB o = new AABB(xCoor - radius, xCoor + radius, yCoor - radius, yCoor + radius);
-    	return rtree.queryOne(o);
     }
 }

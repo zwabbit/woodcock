@@ -4,17 +4,19 @@
  */
 package woodcock;
 
+import java.util.Comparator;
 import java.util.Random;
 
 /**
  *
  * @author Z98
  */
-public class Patch {
+public class Patch{
     public int x, y;
-    public int landCover, waterDepth, roadLength, soil, canopy, age, landing;
+    public int landCover, waterDepth, roadLength, soil, canopy, age, landing, developDistance, queuePos;
     public double[] trees = null;
     public static Random rand = null;
+    public double lumberProfit;
     
     double[][] growthMatrix = null;
     double ingrowthMatrix;
@@ -117,6 +119,7 @@ public class Patch {
         double mBF = 0;
         int cutOff;
         int endIndex;
+        int earnPerMBF = 0;
         if(landCover == 142)
         {
             cutOff = 8;
@@ -133,6 +136,7 @@ public class Patch {
             double tValue;
             double height;
             double volume = 0;
+
             switch (landCover) {
                 case 141:
                     diameter = (4 + 1) * 2;
@@ -245,8 +249,24 @@ public class Patch {
             }
             
             mBF += (volume * factor)/12;
+            
         }
-        
-        return mBF;
+        // money earn from wood harvested in mbf unit
+        switch(landCover)
+        {
+            case 141:
+                earnPerMBF = 151;
+                break;
+            case 142:
+                earnPerMBF = 147;
+                break;
+            default:
+                earnPerMBF = 127;
+                break;
+        }
+        lumberProfit = mBF * earnPerMBF; // added profit count
+        return lumberProfit;
     }
+    
+   
 }

@@ -12,7 +12,7 @@ import java.util.TreeMap;
  * @author Z98
  */
 public class WeightedRandom<E> {
-    private final TreeMap<Double, E> map = new TreeMap<>();
+    private final TreeMap<Double, E> map = new TreeMap<Double, E>();
     private final Random rand;
     private double total = 0;
     
