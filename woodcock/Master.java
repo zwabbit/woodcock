@@ -374,6 +374,7 @@ public class Master {
                 }
 
                 patch.generateTrees(diameter);
+                patch.age++;
             }
             
         });
