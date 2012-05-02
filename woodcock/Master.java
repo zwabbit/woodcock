@@ -20,6 +20,10 @@ public class Master {
     /**
      * @param args the command line arguments
      */
+    
+    public static RTree waterDepth = null;
+    public static RTree timberSuitable = null;
+
     public static void main(String[] args) {
         // TODO code application logic here
         int tick = 0;
@@ -43,8 +47,8 @@ public class Master {
         PriorityQueue<Patch> cutCandidates = new PriorityQueue<>();
         
         // rtree for nearby water area and suitability for harvesting lumber
-        RTree waterDepth = new RTree(4, 8);
-        RTree timberSuitable = new RTree(4, 8);
+        if(waterDepth == null) waterDepth = new RTree(4, 8);
+        if(timberSuitable == null) timberSuitable = new RTree(4, 8);
         
         Calculation.initializeWeightedRandom();
         Calculation.initializeGrowth();
@@ -101,6 +105,7 @@ public class Master {
                              * or is "candidate" for cutting to become suitable.
                              */
                             forestPatches.add(patch);
+                            patch.age = Calculation.rand.nextInt(51);
                         }
                         
 
@@ -353,7 +358,6 @@ public class Master {
                 public void run(int i) {
                     Patch p = finalForests.get(i);
                     p.growTrees();
-                    System.out.println(p.calcValue());
                 }
             });
             
