@@ -108,15 +108,18 @@ public class WCConservation {
                         xValues.put(candidate.x, candidate.x);
                         xOrdered.add(candidate.x);
                     }
-                    if(xValues.get(candidate.y) == null)
+                    if(yValues.get(candidate.y) == null)
                     {
-                        xValues.put(candidate.y, candidate.y);
-                        xOrdered.add(candidate.y);
+                        yValues.put(candidate.y, candidate.y);
+                        yOrdered.add(candidate.y);
                     }
                 }
                 
                 final ArrayList<org.neos.gams.Set> fSets = gSets;
                 
+                /*
+                 * Add set members in parallel.
+                 */
                 Parallel.withIndex(0, 1, new Parallel.Each() {
 
                     @Override
