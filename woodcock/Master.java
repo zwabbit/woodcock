@@ -38,16 +38,16 @@ public class Master {
         Path waterPath = Paths.get("wtdepthcmascii.txt");
         Path coverPath = Paths.get("cdl2011.txt");
         Path landPath = Paths.get("landingsuitability.txt");
-        HashMap<List<Integer>, Patch> patches = new HashMap<List<Integer>, Patch>(); // update every year
+        HashMap<List<Integer>, Patch> patches = new HashMap<>(); // update every year
         
-        ArrayList<Patch> forestPatches = new ArrayList<Patch>();
-        LinkedList<Patch> grassPatches = new LinkedList<Patch>();
+        ArrayList<Patch> forestPatches = new ArrayList<>();
+        LinkedList<Patch> grassPatches = new LinkedList<>();
         
         
         
         // rtree for nearby water area and suitability for harvesting lumber
-        RTree waterDepth = new RTree(4, 8);
-        RTree timberSuitable = new RTree(4, 8);
+        RTree waterDepthTree = new RTree(4, 8);
+        RTree timberSuitableTree = new RTree(4, 8);
         RTree forestRtree = new RTree(4, 8);
         RTree developedArea = new RTree(4, 8);
         
@@ -56,9 +56,20 @@ public class Master {
         Calculation.initializeGrowth();
         System.err.println(System.getProperty("user.dir"));
         
-        try
+        Patch testPatch = new Patch(0,0);
+        testPatch.landCover = 141;
+        /*
+        for(int index = 1; index < 51; index++)
         {
-            BufferedReader reader = Files.newBufferedReader(coverPath, charset);
+            //System.out.println();
+            System.out.print("Year " + index + " Value: ");
+            testPatch.growTrees();
+            //System.out.print(testPatch.baselArea +",\n");
+            System.out.println(testPatch.calcValue());
+        }
+        */
+        try (BufferedReader reader = Files.newBufferedReader(coverPath, charset))
+        {
             cIndex = 0;
             rIndex = 0;
             String line = reader.readLine();
@@ -155,7 +166,7 @@ public class Master {
         
         System.out.println("Done reading in cover data");
         
-        try
+        try (BufferedReader reader = Files.newBufferedReader(waterPath, charset))
         {
             /*
              * The water depth data is used to create an R tree
@@ -164,7 +175,6 @@ public class Master {
              * proximity of suitable foraging ground for woodcock
              * habitats.
              */
-            BufferedReader reader = Files.newBufferedReader(waterPath, charset);
             String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
@@ -196,7 +206,7 @@ public class Master {
                         {
                             //Insert into R tree.
                         	AABB box = new AABB(rIndex, cIndex);
-                        	waterDepth.insert(box);
+                        	waterDepthTree.insert(box);
                         }
                     }
                     ++cIndex;
@@ -216,7 +226,7 @@ public class Master {
         
         System.out.println("Done reading in water data");
         
-        try
+        try (BufferedReader reader = Files.newBufferedReader(landPath, charset))
         {
             /*
              * The landing data indicates suitability of
@@ -226,7 +236,6 @@ public class Master {
              * from the target patch to the nearest landing
              * patch.
              */
-            BufferedReader reader = Files.newBufferedReader(landPath, charset);
             String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
@@ -264,7 +273,7 @@ public class Master {
                         if(landing == 3)
                         {
                         	AABB box = new AABB(rIndex, cIndex);
-                        	timberSuitable.insert(box);
+                        	timberSuitableTree.insert(box);
                         }
                     }
                     
@@ -301,11 +310,11 @@ public class Master {
             // p.lumberProfit for comparison against other forest patch in pqueue
             p.calcValue();
             // check if the patch is suitable for lumber
-            lumCompany.queueTimberPatch(timberSuitable, x, y, p);
+            lumCompany.queueTimberPatch(timberSuitableTree, x, y, p);
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
-            conservGroup.queueDevelopedPatch(developedArea, waterDepth, x, y, p);
+            conservGroup.queueDevelopedPatch(developedArea, waterDepthTree, x, y, p);
             
             /*
              * If a suitable candidate, check age of forest.  If already
@@ -318,25 +327,25 @@ public class Master {
         }
         
         // pqueue for both lumber company and conservative group
-        PriorityQueue<Patch> lumberPQueue = new PriorityQueue<Patch>();
-        PriorityQueue<Patch> conserPQueue = new PriorityQueue<Patch>();
+        PriorityQueue<Patch> lumberPQueue = new PriorityQueue<>();
+        PriorityQueue<Patch> conserPQueue = new PriorityQueue<>();
         lumberPQueue = lumCompany.getPQueue();
         System.out.println("lumberPQueue size : " + lumberPQueue.size());
         conserPQueue = conservGroup.getPQueue();
         System.out.println("conserPQueue : " + conserPQueue.size());
 
         // test for rtree
-        System.out.println("count of waterdepth rtree: " + waterDepth.count());
+        System.out.println("count of waterdepth rtree: " + waterDepthTree.count());
         AABB boxCheck = new AABB(300, 301, 956, 1000);
         // search if the patch is inside the water depth rtree(water area suitable for foraging)
         // return the range of coordinates if found(in (MinxCoor, MinyCoor):(MaxxCoor, MaxyCoor)), 
         // return null if not
-        System.out.println("rtree query: " + waterDepth.queryOne(300, 956));    
-        System.out.println("rtree query: " + waterDepth.queryOne(300, 957));    
-        System.out.println("rtree query: " + waterDepth.queryOne(300, 1007));    
-        System.out.println("rtree query: " + waterDepth.queryOne(300, 1014));    
-        System.out.println("rtree query: " + waterDepth.queryOne(330, 1014));  
-        System.out.println("rtree query: " + waterDepth.queryOne(boxCheck)); 
+        System.out.println("rtree query: " + waterDepthTree.queryOne(300, 956));    
+        System.out.println("rtree query: " + waterDepthTree.queryOne(300, 957));    
+        System.out.println("rtree query: " + waterDepthTree.queryOne(300, 1007));    
+        System.out.println("rtree query: " + waterDepthTree.queryOne(300, 1014));    
+        System.out.println("rtree query: " + waterDepthTree.queryOne(330, 1014));  
+        System.out.println("rtree query: " + waterDepthTree.queryOne(boxCheck)); 
         // check if the rtree insert patch(x and y coordinates) correctly
         System.out.println("forestpatches: " + forestPatches.size());  
         System.out.println("grassPatches: " + grassPatches.size()); 
@@ -346,47 +355,37 @@ public class Master {
         
         final ArrayList<Patch> finalForests = forestPatches;
         
+        System.out.println("Generating forests.\n");
+        /*
+        for(Patch p : forestPatches)
+        {
+            p.generateTrees();
+            p.age++;
+        }
+        */
         Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
 
             @Override
             public void run(int i) {
                 Patch patch = finalForests.get(i);
-                int diameter = 0;
-                switch (patch.landCover) {
-                    case 141:
-                        diameter = Calculation.conDefRand.next();
-                        if (diameter == 10) {
-                            diameter = Calculation.lessConDefRand.next();
-                        }
-                        break;
-                    case 142:
-                        diameter = Calculation.decDefRand.next();
-                        if (diameter == 10) {
-                            diameter = Calculation.lessDecDefRand.next();
-                        }
-                        break;
-                    case 143:
-                        diameter = Calculation.mixDefRand.next();
-                        if (diameter == 10) {
-                            diameter = Calculation.lessMixDefRand.next();
-                        }
-                        break;
-                }
-
-                patch.generateTrees(diameter);
+                patch.generateTrees();
                 patch.age++;
             }
             
         });
         
+        System.out.println("Done generating forests.\n");
+        
         while(true)
         {
+            final int time = tick;
             Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
 
                 @Override
                 public void run(int i) {
                     Patch p = finalForests.get(i);
                     p.growTrees();
+                    System.out.println("Value at time " + time + " at age " + p.age + ": " + p.calcValue());
                 }
             });
             ++tick;

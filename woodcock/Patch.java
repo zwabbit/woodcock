@@ -28,6 +28,7 @@ public class Patch{
         this.x = x;
         this.y = y;
         trees = new double[12];
+        age = 0;
         if(rand == null) rand = new Random();
     }
     
@@ -40,9 +41,9 @@ public class Patch{
         this.canopy = canopy;
     }
     
-    public void generateTrees(int diameter)
+    public void generateTrees()
     {
-        double targetBasel = rand.nextInt(51) + 60;
+        double targetBasel = Calculation.baAge[age];
         double currentBasel = 0;
         /*
          * Reenable after we get that negative exponential
@@ -54,13 +55,34 @@ public class Patch{
         {
             if(normOrNot == 1)
             {
-                double x = (double)rand.nextInt(101) / 100.0;
-                double y = (double)rand.nextInt(101) / 100.0;
-                double sD = x/(x+y) * diameter;
-                int treeSize = rand.nextInt(12);
-                ++trees[treeSize];
-                int treeDia = (treeSize + 1) * 2;
-                currentBasel += Calculation.BA * Math.pow(treeDia, 2);
+                int diameter = 0;
+                switch (landCover) {
+                    case 141:
+                        diameter = Calculation.conDefRand.next();
+                        if (diameter == 10) {
+                            diameter = Calculation.lessConDefRand.next();
+                        }
+                        break;
+                    case 142:
+                        diameter = Calculation.decDefRand.next();
+                        if (diameter == 10) {
+                            diameter = Calculation.lessDecDefRand.next();
+                        }
+                        break;
+                    case 143:
+                        diameter = Calculation.mixDefRand.next();
+                        if (diameter == 10) {
+                            diameter = Calculation.lessMixDefRand.next();
+                        }
+                        break;
+                }
+                //double x = (double)rand.nextInt(101) / 100.0;
+                //double y = (double)rand.nextInt(101) / 100.0;
+                //double sD = x/(x+y) * diameter;
+                int index = (diameter/2) - 1;
+                if(index < 0) index = 0;
+                ++trees[index];
+                currentBasel += Calculation.BA * Math.pow(diameter, 2);
             }
             else
             {
@@ -139,7 +161,7 @@ public class Patch{
 
             switch (landCover) {
                 case 141:
-                    diameter = (4 + 1) * 2;
+                    diameter = (index + 1) * 2;
                     if (diameter > 10) {
                         tValue = 1.00001 - (9 / diameter);
                     } else {
@@ -248,7 +270,7 @@ public class Patch{
                 }
             }
             
-            mBF += (volume * factor)/12;
+            mBF += (volume * trees[index] * factor)/12;
             
         }
         // money earn from wood harvested in mbf unit

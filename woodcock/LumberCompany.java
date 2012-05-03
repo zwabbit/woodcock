@@ -15,10 +15,12 @@ public class LumberCompany{
      * or profitable cutting a patch would be.
      */
 	private PriorityQueue<Patch> lumberCandidates;
+        public HashMap<List<Integer>, Patch> candidateMap;
 	
 	public LumberCompany (int forestPatchSize) {
 		Comparator<Patch> comparator = new PatchLumberComparator();
 		lumberCandidates = new PriorityQueue<Patch>(forestPatchSize, comparator);
+                candidateMap = new HashMap<>();
 	}
 	
 	// check within the range 1000 for suitable landing area. 
@@ -28,13 +30,25 @@ public class LumberCompany{
 		while (rangeLanding < 1000) {
 			if (rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
 				p.lumberProfit -= rangeLanding;
-				if (p.lumberProfit > 100) {
+				if (p.lumberProfit > 250) {
 					lumberCandidates.add(p);
+                                        List<Integer> key = Arrays.asList(p.x, p.y);
+                                        candidateMap.put(key, p);
 				}
 			}
 			rangeLanding += 100;
 		}
 	}
+        
+        public boolean isCandidate(Patch p)
+        {
+            List<Integer> key = Arrays.asList(p.x, p.y);
+            Patch patch = candidateMap.get(key);
+            if(patch == null)
+                return false;
+            
+            return true;
+        }
 	
 	public PriorityQueue<Patch> getPQueue () {
 		return lumberCandidates;

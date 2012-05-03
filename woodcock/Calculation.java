@@ -52,6 +52,60 @@ public class Calculation {
     public static WeightedRandom<Integer> lessDecDefRand = new WeightedRandom<Integer>();
     public static WeightedRandom<Integer> lessMixDefRand = new WeightedRandom<Integer>();
     
+    public static double[] baAge = {
+        0,
+        0.10040239017503998,
+        0.20586737742119446,
+        0.31634904789653134,
+        0.43180388422437715,
+        0.55219072348986,
+        0.6774707152108608,
+        0.8076072792848064,
+        0.9425660639109603,
+        1.0823149034862578,
+        1.22682377647127,
+        1.3760647632215994,
+        1.5300120037788212,
+        1.6886416556140253,
+        1.85193185131593,
+        2.0198626562144057,
+        2.1924160259289223,
+        2.369575763829833,
+        2.5513274783984565,
+        2.7376585404694205,
+        2.9285580403358358,
+        3.1240167446942615,
+        3.3240270534022995,
+        3.528582956016948,
+        3.7376799880765454,
+        3.951315187083367,
+        4.169487048137823,
+        4.392195479168692,
+        4.619441755697249,
+        4.8512284750664865,
+        5.0875595100601325,
+        5.328439961829865,
+        5.573876112043414,
+        5.8238753741609575,
+        6.078446243742722,
+        6.337598247687234,
+        6.601341892296851,
+        6.8696886100659365,
+        7.142650705086627,
+        7.420241296968188,
+        7.702474263168327,
+        7.9893641796385335,
+        8.280926259690647,
+        8.577176290998397,
+        8.878130570655495,
+        9.183805838221156,
+        9.49421920669425,
+        9.80938809136927,
+        10.129330136539647,
+        10.454063140028152,
+        10.783604975538493
+    };
+    
     public static void initializeWeightedRandom()
     {
         for(int index = 0; index < 3; index++)
@@ -95,18 +149,32 @@ public class Calculation {
         for(int index = 0; index < 11; index++)
         {
             double conRow[] = new double[12];
-            conRow[index] = (1 - conMortality[index]) * (1 - conUpgrowth[index]);
-            conRow[index+1] = (1 - conMortality[index]) * conUpgrowth[index];
-            conGrowthMatrix[index] = conRow;
-            
             double decRow[] = new double[12];
-            decRow[index] = (1 - decMortality[index]) * (1 - decUpgrowth[index]);
-            decRow[index+1] = (1 - decMortality[index]) * decUpgrowth[index];
-            decGrowthMatrix[index] = decRow;
-            
             double mixRow[] = new double[12];
-            mixRow[index] = (1 - mixMortality[index]) * (1 - mixUpgrowth[index]);
-            mixRow[index+1] = (1 - mixMortality[index]) * mixUpgrowth[index];
+            if(index == 0)
+            {
+                conRow[index] = (1 - conMortality[index]) * (1 - conUpgrowth[index]);
+                decRow[index] = (1 - decMortality[index]) * (1 - decUpgrowth[index]);
+                mixRow[index] = (1 - mixMortality[index]) * (1 - mixUpgrowth[index]);
+            }
+            else if(index == 11)
+            {
+                mixRow[index] = (1 - mixMortality[index]);
+            }
+            else
+            {
+                conRow[index] = (1 - conMortality[index]) * (1 - conUpgrowth[index]);
+                conRow[index - 1] = (1 - conMortality[index - 1]) * conUpgrowth[index - 1];
+                
+                decRow[index] = (1 - decMortality[index]) * (1 - decUpgrowth[index]);
+                decRow[index - 1] = (1 - decMortality[index - 1]) * decUpgrowth[index - 1];
+                
+                mixRow[index] = (1 - mixMortality[index]) * (1 - mixUpgrowth[index]);
+                mixRow[index - 1] = (1 - mixMortality[index - 1]) * mixUpgrowth[index - 1];
+            }
+            
+            conGrowthMatrix[index] = conRow;
+            decGrowthMatrix[index] = decRow;
             mixGrowthMatrix[index] = mixRow;
         }
         

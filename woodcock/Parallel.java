@@ -41,6 +41,7 @@ public class Parallel {
         try {
             latch.await();
         } catch (InterruptedException e) {
+            System.err.println(e.toString());
         }
         executor.shutdown();
     }
