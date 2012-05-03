@@ -4,8 +4,9 @@
  */
 package woodcock;
 
-import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.Random;
+import org.neos.gams.*;
 
 /**
  *
@@ -289,6 +290,4 @@ public class Patch{
         lumberProfit = mBF * earnPerMBF; // added profit count
         return lumberProfit;
     }
-    
-   
 }

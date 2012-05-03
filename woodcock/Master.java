@@ -22,11 +22,13 @@ public class Master {
      */
     public static RTree waterDepth = null;
     public static RTree timberSuitable = null;
+    
+    static int columns;
+    static int rows;
+    
     public static void main(String[] args) {
         // TODO code application logic here
         int tick = 0;
-        int columns;
-        int rows;
         int cIndex = 0;
         int rIndex = 0;
         double leastprofit = 0.0;
