@@ -11,6 +11,9 @@ import java.util.Random;
  * @author Z98
  */
 public class Calculation {
+    public static final String NEOS_HOST = "neos-server.org";
+    public static final String NEOS_PORT = "3332";
+    
     public static double conDefaultTreeWeight[] = {0.185236008, 0.258728096, 0.556035896};
     public static double decDefaultTreeWeight[] = {0.2, 0.37, 0.43};
     public static double mixDefaultTreeWeight[] = {0.224804403, 0.350450241, 0.424745355};
@@ -44,13 +47,13 @@ public class Calculation {
     
     public static Random rand = new Random();
     
-    public static WeightedRandom<Integer> conDefRand = new WeightedRandom<Integer>();
-    public static WeightedRandom<Integer> decDefRand = new WeightedRandom<Integer>();
-    public static WeightedRandom<Integer> mixDefRand = new WeightedRandom<Integer>();
+    public static WeightedRandom<Integer> conDefRand = new WeightedRandom<>();
+    public static WeightedRandom<Integer> decDefRand = new WeightedRandom<>();
+    public static WeightedRandom<Integer> mixDefRand = new WeightedRandom<>();
         
-    public static WeightedRandom<Integer> lessConDefRand = new WeightedRandom<Integer>();
-    public static WeightedRandom<Integer> lessDecDefRand = new WeightedRandom<Integer>();
-    public static WeightedRandom<Integer> lessMixDefRand = new WeightedRandom<Integer>();
+    public static WeightedRandom<Integer> lessConDefRand = new WeightedRandom<>();
+    public static WeightedRandom<Integer> lessDecDefRand = new WeightedRandom<>();
+    public static WeightedRandom<Integer> lessMixDefRand = new WeightedRandom<>();
     
     public static double[] baAge = {
         0,
