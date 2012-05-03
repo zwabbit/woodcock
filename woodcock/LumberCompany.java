@@ -14,6 +14,7 @@ public class LumberCompany{
      * in order to order them based on how desirable
      * or profitable cutting a patch would be.
      */
+    public static int MIN_VALUE = 250;
 	private PriorityQueue<Patch> lumberCandidates;
         public HashMap<List<Integer>, Patch> candidateMap;
 	
@@ -30,7 +31,7 @@ public class LumberCompany{
 		while (rangeLanding < 1000) {
 			if (rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
 				p.lumberProfit -= rangeLanding;
-				if (p.lumberProfit > 250) {
+				if (p.lumberProfit > MIN_VALUE) {
 					lumberCandidates.add(p);
                                         List<Integer> key = Arrays.asList(p.x, p.y);
                                         candidateMap.put(key, p);
