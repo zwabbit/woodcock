@@ -6,6 +6,9 @@ package woodcock;
 
 import java.io.*;
 import java.util.*;
+import org.neos.client.NeosClient;
+import org.neos.client.NeosJob;
+import org.neos.client.NeosJobXml;
 import org.neos.gams.*;
 
 /**
@@ -68,7 +71,6 @@ public class WCConservation {
     }
 
     public LinkedList<Patch> optimizeCuts() {
-        LinkedList<Patch> selectedPatches = new LinkedList<>();
         String results = new String();
         HashMap<Integer, Integer> xValues = new HashMap<>();
         HashMap<Integer, Integer> yValues = new HashMap<>();
@@ -79,6 +81,7 @@ public class WCConservation {
         orderedSet.add(yOrdered);
         ArrayList<org.neos.gams.Set> gSets = new ArrayList<>();
         final ArrayList<PriorityQueue<Integer> > fOrderedSet = orderedSet;
+        StringBuilder modelContent = new StringBuilder();
 
         try {
             if (hasGams) {
@@ -131,7 +134,13 @@ public class WCConservation {
                     }
                 });
                 
-                StringBuilder modelContent = new StringBuilder();
+                modelContent.append(xSet.toString()).append("\n");
+                modelContent.append(ySet.toString()).append("\n");
+                modelContent.append(value.toString()).append("\n");
+                modelContent.append(isCandidate.toString()).append("\n");
+                modelContent.append(minVal.toString()).append("\n");
+                modelContent.append(required.toString()).append("\n");
+                
                 try (Scanner scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePath),
                                        "ANSI")) {
                     while (scanner.hasNextLine()) {
@@ -141,13 +150,7 @@ public class WCConservation {
                 
                 FileWriter modelFile =
                         new FileWriter(Calculation.outputModelPath);
-                modelFile.write(xSet.toString() + "\n");
-                modelFile.write(ySet.toString() + "\n");
-                modelFile.write(value.toString() + "\n");
-                modelFile.write(isCandidate.toString() + "\n");
-                modelFile.write(minVal.toString() + "\n");
-                modelFile.write(required.toString());
-                modelFile.write("\n");
+
                 modelFile.write(modelContent.toString());
                 
                 ProcessBuilder pBuilder = new ProcessBuilder("gams");
@@ -169,9 +172,20 @@ public class WCConservation {
             System.err.println("Error: running GAMS locally failed: " + ex.getMessage());
         }
         
+        if(results.isEmpty())
+        {
+            NeosClient neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);
+            NeosJobXml jobXml = new NeosJobXml("mip", "xpress", modelContent.toString());
+            NeosJob neosJob = neosClient.submitJob(jobXml.toXMLString());
+            results = neosJob.getResult();
+        }
+        
         SolutionParser parser = new SolutionParser(results);
-        SolutionData bCut = new SolutionData();
-        parser.getSymbol("cut", SolutionData.VAR, habitatCandidates.size());
+        if(parser.getModelStatusCode() != 1)
+            return null;
+        
+        LinkedList<Patch> selectedPatches = new LinkedList<>();
+        SolutionData bCut = parser.getSymbol("cut", SolutionData.VAR, habitatCandidates.size());
         
         for(SolutionRow sRow : bCut.getRows())
         {
