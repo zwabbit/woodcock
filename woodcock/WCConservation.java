@@ -4,9 +4,7 @@
  */
 package woodcock;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import org.neos.gams.Parameter;
 import org.neos.gams.Scalar;
@@ -87,11 +85,32 @@ public class WCConservation {
                     isCandidate.add(candidate.x + "." + candidate.y, "1");
                 }
                 
+                StringBuilder modelContent = new StringBuilder();
+
+                Scanner scanner =
+                        new Scanner(new FileInputStream(Calculation.inputTemplatePath),
+                        "ANSI");
+                
+                while (scanner.hasNextLine()) {
+                    modelContent.append(scanner.nextLine() + "\n");
+                }
+                
+                scanner.close();
+                
+                FileWriter modelFile =
+                        new FileWriter(Calculation.outputModelPath);
+                modelFile.write(xScalar.toString() + "\n");
+                modelFile.write(yScalar.toString() + "\n");
+                modelFile.write(value.toString() + "\n");
+                modelFile.write(isCandidate.toString() + "\n");
+                modelFile.write("\n");
+                modelFile.write(modelContent.toString());
+                
                 ProcessBuilder pBuilder = new ProcessBuilder("gams");
                 pBuilder.redirectOutput();
                 Process gamsProcess = pBuilder.start();
-                BufferedReader gamsReader = new BufferedReader(new InputStreamReader(gamsProcess.getInputStream()));
-
+                BufferedReader gamsReader =
+                        new BufferedReader(new InputStreamReader(gamsProcess.getInputStream()));
                 
                 String line;
                 while((line = gamsReader.readLine()) != null)

@@ -4,9 +4,7 @@
  */
 package woodcock;
 
-import java.util.LinkedList;
 import java.util.Random;
-import org.neos.gams.*;
 
 /**
  *
