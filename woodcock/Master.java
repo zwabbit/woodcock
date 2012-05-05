@@ -398,6 +398,11 @@ public class Master extends JFrame{
              * information like road length to help determine ease of transport.
              */
         }
+        if(notSuitable == forestPatches.size())
+        {
+            if(conservGroup.ForceHabitat(forestPatches)) System.out.println("Forced generation successful.");
+            else System.err.println("Failed to force generate habitats for first year.");
+        }
         System.out.println("Not suitable forest count: " + notSuitable);
         System.out.println("forest count: " + forestPatches.size());
         System.out.println("forest drawing count: " + sp.countForest);

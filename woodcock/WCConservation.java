@@ -27,6 +27,8 @@ public class WCConservation {
     public HashMap<List<Integer>, Patch> candidateMap;
     int requiredHabitats;
     
+    public int rangeDevelop = 10;
+    
     private RTree candidateTree = null;
 
     public WCConservation(int forestPatchSize) {
@@ -47,7 +49,6 @@ public class WCConservation {
     // get the suitable patch for woodcock habitat
     // still have to check against water patch and forest area
     public boolean checkSuitability(int x, int y, Patch p) {
-        int rangeDevelop = 10;
         if (Calculation.rangeQuery(Master.developedArea, x, y, rangeDevelop) != null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too close to developed area.");
@@ -89,6 +90,43 @@ public class WCConservation {
 
     public PriorityQueue<Patch> getPQueue() {
         return habitatCandidates;
+    }
+    
+    public boolean ForceHabitat(ArrayList<Patch> forestPatches)
+    {
+        int required = 1000;
+        int found = 0;
+        for(Patch forest : forestPatches)
+        {
+            if (Calculation.rangeQuery(Master.developedArea, forest.x, forest.y, rangeDevelop) != null) {
+                if (Master.DEBUG_FLAG) {
+                    System.err.println("Too close to developed area.");
+                }
+                continue;
+            }
+            if (Calculation.rangeQuery(Master.waterDepth, forest.x, forest.y, 1) == null) {
+                if (Master.DEBUG_FLAG) {
+                    System.err.println("Too far from wet area.");
+                }
+                continue;
+            }
+            if (Calculation.rangeQuery(candidateTree, forest.x, forest.y, 1) != null) {
+                if (Master.DEBUG_FLAG) {
+                    System.err.println("Too close to other candidate.");
+                }
+                continue;
+            }
+            
+            habitatCandidates.add(forest);
+            List<Integer> key = Arrays.asList(forest.x, forest.y);
+            candidateMap.put(key, forest);
+            candidateTree.insert(forest.box);
+            ++found;
+            if(found >= required)
+                return true;
+        }
+        
+        return false;
     }
 
     public LinkedList<Patch> optimizeCuts() {
