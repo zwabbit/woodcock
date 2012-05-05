@@ -27,7 +27,7 @@ public class WCConservation {
     public HashMap<List<Integer>, Patch> candidateMap;
     int requiredHabitats;
     
-    public int rangeDevelop = 10;
+    public int rangeDevelop = 1;
     
     private RTree candidateTree = null;
 
@@ -91,29 +91,39 @@ public class WCConservation {
     public PriorityQueue<Patch> getPQueue() {
         return habitatCandidates;
     }
-    
+    static int waterDist = 10;
+    int found = 0;
     public boolean ForceHabitat(ArrayList<Patch> forestPatches)
     {
         int required = 1000;
-        int found = 0;
+        int dev = 0;
+        int water = 0;
+        int candidate = 0;
+        
         for(Patch forest : forestPatches)
         {
+            /*
             if (Calculation.rangeQuery(Master.developedArea, forest.x, forest.y, rangeDevelop) != null) {
                 if (Master.DEBUG_FLAG) {
                     System.err.println("Too close to developed area.");
                 }
+                ++dev;
                 continue;
             }
-            if (Calculation.rangeQuery(Master.waterDepth, forest.x, forest.y, 1) == null) {
+            * 
+            */
+            if (Calculation.rangeQuery(Master.waterDepth, forest.x, forest.y, waterDist) == null) {
                 if (Master.DEBUG_FLAG) {
                     System.err.println("Too far from wet area.");
                 }
+                ++water;
                 continue;
             }
             if (Calculation.rangeQuery(candidateTree, forest.x, forest.y, 1) != null) {
                 if (Master.DEBUG_FLAG) {
                     System.err.println("Too close to other candidate.");
                 }
+                ++candidate;
                 continue;
             }
             
@@ -125,7 +135,11 @@ public class WCConservation {
             if(found >= required)
                 return true;
         }
-        
+        System.err.println("Forced generation count: " + found);
+        System.err.println("Failed due to dev: " + dev);
+        System.err.println("Failed due to water: " + water);
+        System.err.println("Failed due to candidate: " + candidate);
+        waterDist *= 10;
         return false;
     }
 

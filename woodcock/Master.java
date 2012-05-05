@@ -84,6 +84,7 @@ public class Master extends JFrame{
         int rIndex = 0;
         double leastprofit = 0.0;
         double mostprofit = 0.0;
+        int foundWater = 0;
         int countSuitablePatch = 0; // for checking the total # of suitable patches for woodcock
         							// check for both water patch in vicinity and suitability of nearby 
         							// land for gathering lumber
@@ -96,7 +97,8 @@ public class Master extends JFrame{
         ArrayList<Patch> forestPatches = new ArrayList<>();
         LinkedList<Patch> grassPatches = new LinkedList<>();
         
-        
+        int lowestDepth = Integer.MAX_VALUE;
+        HashMap<Integer, Integer> waterDepthLevels = new HashMap<>();
         
         // rtree for nearby water area and suitability for harvesting lumber
         waterDepth = new RTree(4, 8);
@@ -256,12 +258,17 @@ public class Master extends JFrame{
                             patches.put(coord, patch);
                         }
                         patch.waterDepth = wDepth;
+                        if(lowestDepth > wDepth)
+                            lowestDepth = wDepth;
+                        if(waterDepthLevels.get(wDepth) == null)
+                            waterDepthLevels.put(wDepth, wDepth);
                         
-                        if(wDepth <= 30 && patch.landCover != 111)
+                        if(wDepth <= 80 && patch.landCover != 111)
                         {
                             //Insert into R tree.
                         	AABB box = new AABB(cIndex, rIndex);
                         	waterDepth.insert(box);
+                                foundWater++;
                         }
                     }
                     ++cIndex;
@@ -280,6 +287,13 @@ public class Master extends JFrame{
         }
         
         System.out.println("Done reading in water data");
+        System.out.println("Found water: " + foundWater);
+        Iterator it = waterDepthLevels.entrySet().iterator();
+        while(it.hasNext())
+        {
+            Map.Entry<Integer, Integer> entry = (Map.Entry<Integer, Integer>)it.next();
+            System.out.println(entry.getKey());
+        }
         
         try (BufferedReader reader = Files.newBufferedReader(landPath, charset))
         {
@@ -400,9 +414,13 @@ public class Master extends JFrame{
         }
         if(notSuitable == forestPatches.size())
         {
-            if(conservGroup.ForceHabitat(forestPatches)) System.out.println("Forced generation successful.");
-            else System.err.println("Failed to force generate habitats for first year.");
+            boolean got = false;
+            while(got == false)
+            {
+                got = conservGroup.ForceHabitat(forestPatches);
+            }
         }
+        
         System.out.println("Not suitable forest count: " + notSuitable);
         System.out.println("forest count: " + forestPatches.size());
         System.out.println("forest drawing count: " + sp.countForest);
