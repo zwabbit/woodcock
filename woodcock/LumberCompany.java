@@ -29,7 +29,7 @@ public class LumberCompany{
 	public void queueTimberPatch(RTree timberSuitable, int x, int y, Patch p) {
 		int rangeLanding = 100;
 		while (rangeLanding < 1000) {
-			if (rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
+			if (Calculation.rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
 				p.lumberProfit -= rangeLanding;
 				if (p.lumberProfit > MIN_VALUE) {
 					lumberCandidates.add(p);
@@ -66,10 +66,6 @@ public class LumberCompany{
      * 
      * @return 	one of the point within the range
      */
-    public static BoundedObject rangeQuery (RTree rtree, int xCoor, int yCoor, int radius) {
-    	AABB o = new AABB(xCoor - radius, xCoor + radius, yCoor - radius, yCoor + radius);
-    	return rtree.queryOne(o);
-    }
 }
 
 

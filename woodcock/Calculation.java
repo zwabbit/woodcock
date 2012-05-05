@@ -197,4 +197,9 @@ public class Calculation {
         lastMixRow[11] = 1 - mixMortality[11];
         mixGrowthMatrix[11] = lastMixRow;
     }
+    
+    public static BoundedObject rangeQuery (RTree rtree, int xCoor, int yCoor, int radius) {
+    	AABB o = new AABB(xCoor - radius, xCoor + radius, yCoor - radius, yCoor + radius);
+    	return rtree.queryOne(o);
+    }
 }

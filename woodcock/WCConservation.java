@@ -44,8 +44,8 @@ public class WCConservation {
     public void queueDevelopedPatch(RTree developedArea, RTree waterArea, int x, int y, Patch p) {
         int rangeDevelop = 1000;
         while (rangeDevelop > 100) {
-            if (LumberCompany.rangeQuery(developedArea, x, y, rangeDevelop) == null) {
-                if (LumberCompany.rangeQuery(waterArea, x, y, 1) != null) {
+            if (Calculation.rangeQuery(developedArea, x, y, rangeDevelop) == null) {
+                if (Calculation.rangeQuery(waterArea, x, y, 1) != null) {
                     p.developDistance = rangeDevelop / 100;
                     habitatCandidates.add(p);
                     List<Integer> key = Arrays.asList(p.x, p.y);
@@ -178,6 +178,11 @@ public class WCConservation {
             NeosJobXml jobXml = new NeosJobXml("mip", "xpress", modelContent.toString());
             NeosJob neosJob = neosClient.submitJob(jobXml.toXMLString());
             results = neosJob.getResult();
+        }
+        
+        if(results.isEmpty())
+        {
+            return null;
         }
         
         SolutionParser parser = new SolutionParser(results);
