@@ -69,6 +69,9 @@ public class Master extends JFrame{
 	
     public static RTree waterDepth = null;
     public static RTree timberSuitable = null;
+    public static RTree allForests = null;
+    public static RTree youngForests = null;
+    public static RTree developedArea = null;
     
     static int columns;
     static int rows;
@@ -95,10 +98,12 @@ public class Master extends JFrame{
         
         
         // rtree for nearby water area and suitability for harvesting lumber
-        RTree waterDepthTree = new RTree(4, 8);
-        RTree timberSuitableTree = new RTree(4, 8);
-        RTree forestRtree = new RTree(4, 8);
-        RTree developedArea = new RTree(4, 8);
+        waterDepth = new RTree(4, 8);
+        timberSuitable = new RTree(4, 8);
+        allForests = new RTree(4, 8);
+        youngForests = new RTree(4,8);
+        developedArea = new RTree(4, 8);
+        
         
         
         Calculation.initializeWeightedRandom();
@@ -158,20 +163,20 @@ public class Master extends JFrame{
                          * within range of suitable nesting areas before being
                          * declared suitable habitats.
                          */
-                        if(landCover == 141 || landCover == 142 || landCover == 143)
-                        {
+                        if (landCover == 141 || landCover == 142 || landCover == 143) {
                             /*
                              * Unilaterally add any forested patches to list. We
                              * need to iterate through this list later to
                              * determine whether it is already suitable habitat
                              * or is "candidate" for cutting to become suitable.
                              */
-                        	// insert into forest rtree to enable search for grassland area that is near forest
-                        	// for habitat purpose
-                        	AABB box = new AABB(rIndex, cIndex);
-                        	forestRtree.insert(box);
-                        	patch.age = Calculation.rand.nextInt(51);
+                            // insert into forest rtree to enable search for grassland area that is near forest
+                            // for habitat purpose
+                            AABB box = new AABB(cIndex, rIndex);
+                            allForests.insert(box);
+                            patch.age = Calculation.rand.nextInt(51);
                             forestPatches.add(patch);
+                            if(patch.age < 10) youngForests.insert(box);
                         }
                         
 
@@ -193,7 +198,7 @@ public class Master extends JFrame{
                         // get the patches that are developed area
                         if(landCover >= 121 && landCover <= 124)
                         {
-                        	AABB box = new AABB(rIndex, cIndex);
+                        	AABB box = new AABB(cIndex, rIndex);
                         	developedArea.insert(box);
                         }
                     }
@@ -254,8 +259,8 @@ public class Master extends JFrame{
                         if(wDepth <= 30 && patch.landCover != 111)
                         {
                             //Insert into R tree.
-                        	AABB box = new AABB(rIndex, cIndex);
-                        	waterDepthTree.insert(box);
+                        	AABB box = new AABB(cIndex, rIndex);
+                        	waterDepth.insert(box);
                         }
                     }
                     ++cIndex;
@@ -321,8 +326,8 @@ public class Master extends JFrame{
                          */
                         if(landing == 3)
                         {
-                        	AABB box = new AABB(rIndex, cIndex);
-                        	timberSuitableTree.insert(box);
+                        	AABB box = new AABB(cIndex, rIndex);
+                        	timberSuitable.insert(box);
                         }
                     }
                     
@@ -366,11 +371,11 @@ public class Master extends JFrame{
             // p.lumberProfit for comparison against other forest patch in pqueue
             p.calcValue();
             // check if the patch is suitable for lumber
-            lumCompany.queueTimberPatch(timberSuitableTree, x, y, p);
+            lumCompany.queueTimberPatch(timberSuitable, x, y, p);
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
-            conservGroup.queueDevelopedPatch(developedArea, waterDepthTree, x, y, p);
+            if(p.age >= 10) conservGroup.checkSuitability(x, y, p);
             
             sp.setX(p.x);
             sp.setY(p.y);
@@ -441,6 +446,13 @@ public class Master extends JFrame{
         			sp.repaint();
                 }
             });
+            
+            youngForests = new RTree(4, 8);
+            for(Patch forest : forestPatches)
+            {
+                if(forest.age < 10) youngForests.insert(forest.box);
+                else conservGroup.checkSuitability(forest.x, forest.y, forest);
+            }
             ++tick;
         }
     }

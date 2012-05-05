@@ -16,6 +16,7 @@ public class Patch{
     public double[] trees = null;
     public static Random rand = null;
     public double lumberProfit;
+    public AABB box = null;
     
     double[][] growthMatrix = null;
     double ingrowthMatrix;
@@ -29,6 +30,7 @@ public class Patch{
         trees = new double[12];
         age = 0;
         if(rand == null) rand = new Random();
+        box = new AABB(this.x, this.y);
     }
     
     public Patch(int x, int y, int landCover, int waterDepth, int roadLength, int soil, int canopy)

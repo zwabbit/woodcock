@@ -23,14 +23,17 @@ public class WCConservation {
      */
     
     boolean hasGams = false;
-    private PriorityQueue<Patch> habitatCandidates;
+    public PriorityQueue<Patch> habitatCandidates;
     public HashMap<List<Integer>, Patch> candidateMap;
     int requiredHabitats;
+    
+    private RTree candidateTree = null;
 
     public WCConservation(int forestPatchSize) {
         Comparator<Patch> comparator = new PatchLumberComparator();
         habitatCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         candidateMap = new HashMap<>();
+        candidateTree = new RTree(4, 8);
 
         /*
         String pathEnv = System.getenv("PATH");
@@ -40,22 +43,24 @@ public class WCConservation {
         }
         */
     }
-    
+
     // get the suitable patch for woodcock habitat
     // still have to check against water patch and forest area
-    public void queueDevelopedPatch(RTree developedArea, RTree waterArea, int x, int y, Patch p) {
-        int rangeDevelop = 1000;
-        while (rangeDevelop > 100) {
-            if (Calculation.rangeQuery(developedArea, x, y, rangeDevelop) == null) {
-                if (Calculation.rangeQuery(waterArea, x, y, 1) != null) {
-                    p.developDistance = rangeDevelop / 100;
-                    habitatCandidates.add(p);
-                    List<Integer> key = Arrays.asList(p.x, p.y);
-                    candidateMap.put(key, p);
-                }
-            }
-            rangeDevelop -= 100;
-        }
+    public void checkSuitability(int x, int y, Patch p) {
+        int rangeDevelop = 100;
+        if (Calculation.rangeQuery(Master.developedArea, x, y, rangeDevelop) != null)
+            return;
+        if (Calculation.rangeQuery(Master.waterDepth, x, y, 1) == null)
+            return;
+        if(Calculation.rangeQuery(Master.youngForests, x, y, 1) == null)
+            return;
+        if(Calculation.rangeQuery(candidateTree, x, y, 1) != null)
+            return;
+
+        habitatCandidates.add(p);
+        List<Integer> key = Arrays.asList(p.x, p.y);
+        candidateMap.put(key, p);
+        candidateTree.insert(p.box);
     }
 
     public boolean isCandidate(Patch p) {
