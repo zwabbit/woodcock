@@ -27,7 +27,7 @@ public class WCConservation {
     boolean hasGams = false;
     public PriorityQueue<Patch> habitatCandidates;
     public HashMap<List<Integer>, Patch> candidateMap;
-    int requiredHabitats;
+    int requiredHabitats = 500;
     
     public int rangeDevelop = 1;
     
