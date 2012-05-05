@@ -6,6 +6,8 @@ package woodcock;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neos.client.NeosClient;
 import org.neos.client.NeosJob;
 import org.neos.client.NeosJobXml;
@@ -32,11 +34,13 @@ public class WCConservation {
         habitatCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         candidateMap = new HashMap<>();
 
+        /*
         String pathEnv = System.getenv("PATH");
         hasGams = pathEnv.contains("GAMS");
         if (hasGams == false) {
             hasGams = pathEnv.contains("gams");
         }
+        */
     }
     
     // get the suitable patch for woodcock habitat
@@ -71,7 +75,8 @@ public class WCConservation {
     }
 
     public LinkedList<Patch> optimizeCuts() {
-        String results = new String();
+        StringBuilder resultsBuilder = new StringBuilder();
+        String results;
         HashMap<Integer, Integer> xValues = new HashMap<>();
         HashMap<Integer, Integer> yValues = new HashMap<>();
         PriorityQueue<Integer> xOrdered = new PriorityQueue<>();
@@ -154,30 +159,34 @@ public class WCConservation {
                 modelFile.write(modelContent.toString());
                 
                 ProcessBuilder pBuilder = new ProcessBuilder("gams");
-                pBuilder.redirectOutput();
                 Process gamsProcess = pBuilder.start();
                 BufferedReader gamsReader =
                         new BufferedReader(new InputStreamReader(gamsProcess.getInputStream()));
-                
+                try {
+                    gamsProcess.waitFor();
+                } catch (InterruptedException ex) {
+                    //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
+                    System.err.println(ex.getMessage());
+                }
                 String line;
                 while((line = gamsReader.readLine()) != null)
                 {
-                    results.concat(line + "\n");
-                    if (gamsProcess.exitValue() == 0) {
-                        
-                    }
+                    resultsBuilder.append(line).append("\n");
                 }
             }
         } catch(IOException ex) {
             System.err.println("Error: running GAMS locally failed: " + ex.getMessage());
         }
-        
-        if(results.isEmpty())
+        if(resultsBuilder.length() == 0)
         {
             NeosClient neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);
             NeosJobXml jobXml = new NeosJobXml("mip", "xpress", modelContent.toString());
             NeosJob neosJob = neosClient.submitJob(jobXml.toXMLString());
             results = neosJob.getResult();
+        }
+        else
+        {
+            results = resultsBuilder.toString();
         }
         
         if(results.isEmpty())
