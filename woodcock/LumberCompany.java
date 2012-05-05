@@ -20,7 +20,7 @@ public class LumberCompany{
 	
 	public LumberCompany (int forestPatchSize) {
 		Comparator<Patch> comparator = new PatchLumberComparator();
-		lumberCandidates = new PriorityQueue<Patch>(forestPatchSize, comparator);
+		lumberCandidates = new PriorityQueue<>(forestPatchSize, comparator);
                 candidateMap = new HashMap<>();
 	}
 	

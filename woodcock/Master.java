@@ -4,6 +4,8 @@
  */
 package woodcock;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -11,19 +13,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.awt.Color;
-import javax.swing.*;
-import java.awt.Graphics;
+import javax.swing.JFrame;
 /**
  *
  * @author Z98
  */
 public class Master extends JFrame{
-	private int x, y, color, countForest; 
-	// Function to draw patches of forest, the color changes according to age, older forest has lighter color
-	public Master() {
-		countForest = 0;
-	}
+    private int x, y, color, countForest; 
+    // Function to draw patches of forest, the color changes according to age, older forest has lighter color
+    public Master() {
+        countForest = 0;
+    }
 	
 	public void setForestColor(int color) {
 		color *= 4;
@@ -42,19 +42,22 @@ public class Master extends JFrame{
 		  this.x = x;
 	  }
 	  
-	  public int getX() {
-		  return x;
-	  }
+    @Override
+    public int getX() {
+        return x;
+    }
 	  
 	  public void setY(int y) {
 		  this.y = y;
 	  }
 	  
-	  public int getY() {
-		  return y;
-	  }
+    @Override
+    public int getY() {
+        return y;
+    }
 	  
-	public void paint(Graphics g) {
+    @Override
+    public void paint(Graphics g) {
 		int a = getColor();
 		Color c = new Color(0, a, 0);
 		Graphics g1 = g;
@@ -84,10 +87,10 @@ public class Master extends JFrame{
         Path waterPath = Paths.get("wtdepthcmascii.txt");
         Path coverPath = Paths.get("cdl2011.txt");
         Path landPath = Paths.get("landingsuitability.txt");
-        HashMap<List<Integer>, Patch> patches = new HashMap<List<Integer>, Patch>(); // update every year
+        HashMap<List<Integer>, Patch> patches = new HashMap<>(); // update every year
         
-        ArrayList<Patch> forestPatches = new ArrayList<Patch>();
-        LinkedList<Patch> grassPatches = new LinkedList<Patch>();
+        ArrayList<Patch> forestPatches = new ArrayList<>();
+        LinkedList<Patch> grassPatches = new LinkedList<>();
         
         
         
@@ -114,9 +117,8 @@ public class Master extends JFrame{
             System.out.println(testPatch.calcValue());
         }
         */
-        try 
+        try (BufferedReader reader = Files.newBufferedReader(coverPath, charset))
         {
-        	BufferedReader reader = Files.newBufferedReader(coverPath, charset);
             cIndex = 0;
             rIndex = 0;
             String line = reader.readLine();
@@ -213,7 +215,7 @@ public class Master extends JFrame{
         
         System.out.println("Done reading in cover data");
         
-        try 
+        try (BufferedReader reader = Files.newBufferedReader(waterPath, charset))
         {
             /*
              * The water depth data is used to create an R tree
@@ -222,7 +224,6 @@ public class Master extends JFrame{
              * proximity of suitable foraging ground for woodcock
              * habitats.
              */
-        	BufferedReader reader = Files.newBufferedReader(waterPath, charset);
             String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
@@ -274,7 +275,7 @@ public class Master extends JFrame{
         
         System.out.println("Done reading in water data");
         
-        try 
+        try (BufferedReader reader = Files.newBufferedReader(landPath, charset))
         {
             /*
              * The landing data indicates suitability of
@@ -284,7 +285,6 @@ public class Master extends JFrame{
              * from the target patch to the nearest landing
              * patch.
              */
-        	BufferedReader reader = Files.newBufferedReader(landPath, charset);
             String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
@@ -389,8 +389,8 @@ public class Master extends JFrame{
         System.out.println("forest count: " + forestPatches.size());
         System.out.println("forest drawing count: " + sp.countForest);
         // pqueue for both lumber company and conservative group
-        PriorityQueue<Patch> lumberPQueue = new PriorityQueue<Patch>();
-        PriorityQueue<Patch> conserPQueue = new PriorityQueue<Patch>();
+        PriorityQueue<Patch> lumberPQueue = new PriorityQueue<>();
+        PriorityQueue<Patch> conserPQueue = new PriorityQueue<>();
         lumberPQueue = lumCompany.getPQueue();
         System.out.println("lumberPQueue size : " + lumberPQueue.size());
         conserPQueue = conservGroup.getPQueue();
