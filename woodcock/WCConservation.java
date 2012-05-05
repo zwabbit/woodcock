@@ -6,8 +6,6 @@ package woodcock;
 
 import java.io.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neos.client.NeosClient;
 import org.neos.client.NeosJob;
 import org.neos.client.NeosJobXml;
