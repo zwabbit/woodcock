@@ -20,6 +20,7 @@ import javax.swing.JFrame;
  */
 public class Master extends JFrame{
     private int x, y, color, countForest; 
+    public static boolean DEBUG_FLAG = false;
     // Function to draw patches of forest, the color changes according to age, older forest has lighter color
     public Master() {
         countForest = 0;

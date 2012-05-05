@@ -49,13 +49,25 @@ public class WCConservation {
     public void checkSuitability(int x, int y, Patch p) {
         int rangeDevelop = 100;
         if (Calculation.rangeQuery(Master.developedArea, x, y, rangeDevelop) != null)
+        {
+            if(Master.DEBUG_FLAG) System.err.println("Too close to developed area.");
             return;
+        }
         if (Calculation.rangeQuery(Master.waterDepth, x, y, 1) == null)
+        {
+            if(Master.DEBUG_FLAG) System.err.println("Too far from wet area.");
             return;
+        }
         if(Calculation.rangeQuery(Master.youngForests, x, y, 1) == null)
+        {
+            if(Master.DEBUG_FLAG) System.err.println("Too far from young forest.");
             return;
+        }
         if(Calculation.rangeQuery(candidateTree, x, y, 1) != null)
+        {
+            if(Master.DEBUG_FLAG) System.err.println("Too close to other candidate.");
             return;
+        }
 
         habitatCandidates.add(p);
         List<Integer> key = Arrays.asList(p.x, p.y);
