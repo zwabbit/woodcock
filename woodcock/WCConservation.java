@@ -6,6 +6,8 @@ package woodcock;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neos.client.NeosClient;
 import org.neos.client.NeosJob;
 import org.neos.client.NeosJobXml;
@@ -29,7 +31,7 @@ public class WCConservation {
     
     public int rangeDevelop = 1;
     
-    private RTree candidateTree = null;
+    public RTree candidateTree = null;
 
     public WCConservation(int forestPatchSize) {
         Comparator<Patch> comparator = new PatchLumberComparator();
@@ -49,12 +51,14 @@ public class WCConservation {
     // get the suitable patch for woodcock habitat
     // still have to check against water patch and forest area
     public boolean checkSuitability(int x, int y, Patch p) {
+        /*
         if (Calculation.rangeQuery(Master.developedArea, x, y, rangeDevelop) != null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too close to developed area.");
             return false;
         }
-        if (Calculation.rangeQuery(Master.waterDepth, x, y, 1) == null)
+        */
+        if (Calculation.rangeQuery(Master.waterDepth, x, y, waterDist) == null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too far from wet area.");
             return false;
@@ -131,6 +135,7 @@ public class WCConservation {
             List<Integer> key = Arrays.asList(forest.x, forest.y);
             candidateMap.put(key, forest);
             candidateTree.insert(forest.box);
+            forest.ClearCut();
             ++found;
             if(found >= required)
                 return true;
@@ -246,6 +251,15 @@ public class WCConservation {
         } catch(IOException ex) {
             System.err.println("Error: running GAMS locally failed: " + ex.getMessage());
         }
+        try {
+            FileWriter modelWriter = new FileWriter(".\\MODEL.gms");
+            modelWriter.write(modelContent.toString());
+            modelWriter.close();
+        } catch (IOException ex) {
+            //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("Failed to write out model file.");
+        }
+        
         if(resultsBuilder.length() == 0)
         {
             NeosClient neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);

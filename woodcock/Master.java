@@ -466,6 +466,7 @@ public class Master extends JFrame{
         while(true)
         {
             final int time = tick;
+            conservGroup.candidateTree = new RTree(4, 8);
             Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
 
                 @Override
@@ -486,6 +487,8 @@ public class Master extends JFrame{
                 if(forest.age < 10) youngForests.insert(forest.box);
                 else conservGroup.checkSuitability(forest.x, forest.y, forest);
             }
+            
+            conservGroup.optimizeCuts();
             ++tick;
         }
     }

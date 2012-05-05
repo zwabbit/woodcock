@@ -290,4 +290,10 @@ public class Patch{
         lumberProfit = mBF * earnPerMBF; // added profit count
         return lumberProfit;
     }
+    
+    public void ClearCut()
+    {
+        for(int index = 0; index < 12; index++)
+            trees[index] = 0;
+    }
 }
