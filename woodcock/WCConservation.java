@@ -46,33 +46,35 @@ public class WCConservation {
 
     // get the suitable patch for woodcock habitat
     // still have to check against water patch and forest area
-    public void checkSuitability(int x, int y, Patch p) {
-        int rangeDevelop = 100;
+    public boolean checkSuitability(int x, int y, Patch p) {
+        int rangeDevelop = 10;
         if (Calculation.rangeQuery(Master.developedArea, x, y, rangeDevelop) != null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too close to developed area.");
-            return;
+            return false;
         }
         if (Calculation.rangeQuery(Master.waterDepth, x, y, 1) == null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too far from wet area.");
-            return;
+            return false;
         }
         if(Calculation.rangeQuery(Master.youngForests, x, y, 1) == null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too far from young forest.");
-            return;
+            return false;
         }
         if(Calculation.rangeQuery(candidateTree, x, y, 1) != null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too close to other candidate.");
-            return;
+            return false;
         }
 
         habitatCandidates.add(p);
         List<Integer> key = Arrays.asList(p.x, p.y);
         candidateMap.put(key, p);
         candidateTree.insert(p.box);
+        
+        return true;
     }
 
     public boolean isCandidate(Patch p) {

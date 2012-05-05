@@ -359,6 +359,7 @@ public class Master extends JFrame{
         // Comparator for both PQueue
         LumberCompany lumCompany = new LumberCompany(forestPatches.size());
         WCConservation conservGroup = new WCConservation(forestPatches.size());
+        int notSuitable = 0;
         for(Patch p : forestPatches)
         {
             int x = p.x;
@@ -376,7 +377,12 @@ public class Master extends JFrame{
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
-            if(p.age >= 10) conservGroup.checkSuitability(x, y, p);
+            if(p.age >= 10)
+            {
+                if(conservGroup.checkSuitability(x, y, p) == false)
+                    ++notSuitable;
+            }
+            else ++notSuitable;
             
             sp.setX(p.x);
             sp.setY(p.y);
@@ -392,6 +398,7 @@ public class Master extends JFrame{
              * information like road length to help determine ease of transport.
              */
         }
+        System.out.println("Not suitable forest count: " + notSuitable);
         System.out.println("forest count: " + forestPatches.size());
         System.out.println("forest drawing count: " + sp.countForest);
         // pqueue for both lumber company and conservative group
@@ -401,6 +408,8 @@ public class Master extends JFrame{
         System.out.println("lumberPQueue size : " + lumberPQueue.size());
         conserPQueue = conservGroup.getPQueue();
         System.out.println("conserPQueue : " + conserPQueue.size());
+        
+        System.out.println("Conservation cutting candidates: " + conservGroup.habitatCandidates.size());
 
         System.out.println("forestpatches: " + forestPatches.size());  
         System.out.println("grassPatches: " + grassPatches.size()); 
