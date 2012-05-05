@@ -473,7 +473,7 @@ public class Master extends JFrame{
                 public void run(int i) {
                     Patch p = finalForests.get(i);
                     p.growTrees();
-                    System.out.println("Value at time " + time + " at age " + p.age + ": " + p.calcValue());
+                    if(DEBUG_FLAG) System.out.println("Value at time " + time + " at age " + p.age + ": " + p.calcValue());
                     sp.setX(p.x);
                     sp.setY(p.y);
         			sp.setForestColor(p.age);
@@ -482,6 +482,8 @@ public class Master extends JFrame{
             });
             
             youngForests = new RTree(4, 8);
+            conservGroup.candidateMap.clear();
+            conservGroup.habitatCandidates.clear();
             for(Patch forest : forestPatches)
             {
                 if(forest.age < 10) youngForests.insert(forest.box);

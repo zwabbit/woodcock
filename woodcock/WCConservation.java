@@ -155,83 +155,91 @@ public class WCConservation {
         HashMap<Integer, Integer> yValues = new HashMap<>();
         PriorityQueue<Integer> xOrdered = new PriorityQueue<>();
         PriorityQueue<Integer> yOrdered = new PriorityQueue<>();
-        ArrayList<PriorityQueue<Integer> > orderedSet = new ArrayList<>();
+        ArrayList<PriorityQueue<Integer>> orderedSet = new ArrayList<>();
         orderedSet.add(xOrdered);
         orderedSet.add(yOrdered);
         ArrayList<org.neos.gams.Set> gSets = new ArrayList<>();
-        final ArrayList<PriorityQueue<Integer> > fOrderedSet = orderedSet;
+        final ArrayList<PriorityQueue<Integer>> fOrderedSet = orderedSet;
         StringBuilder modelContent = new StringBuilder();
 
         try {
+
+            org.neos.gams.Set xSet = new org.neos.gams.Set("x", "X coordinates");
+            org.neos.gams.Set ySet = new org.neos.gams.Set("y", "X coordinates");
+            gSets.add(xSet);
+            gSets.add(ySet);
+            Parameter value = new Parameter("patchValue(x,y)", "Patch values");
+            Parameter isCandidate = new Parameter("isCandidate(x,y)", "Is a candidate");
+            Scalar minVal =
+                    new Scalar(
+                    "minVal",
+                    "Minimally acceptable value",
+                    String.valueOf(LumberCompany.MIN_VALUE));
+            Scalar required =
+                    new Scalar(
+                    "requiredPatches",
+                    "Required number of patches to cut",
+                    String.valueOf(requiredHabitats));
+
+            for (Patch candidate : habitatCandidates) {
+                value.add(candidate.x + "." + candidate.y, String.valueOf(candidate.calcValue()));
+                isCandidate.add(candidate.x + "." + candidate.y, "1");
+                if (xValues.get(candidate.x) == null) {
+                    xValues.put(candidate.x, candidate.x);
+                    xOrdered.add(candidate.x);
+                }
+                if (yValues.get(candidate.y) == null) {
+                    yValues.put(candidate.y, candidate.y);
+                    yOrdered.add(candidate.y);
+                }
+            }
+
+            final ArrayList<org.neos.gams.Set> fSets = gSets;
+
+            /*
+             * Add set members in parallel.
+             */
+            /*
+            Parallel.withIndex(0, 1, new Parallel.Each() {
+
+                @Override
+                public void run(int i) {
+                    PriorityQueue<Integer> xO = fOrderedSet.get(i);
+                    for (Integer itgr : xO) {
+                        fSets.get(i).addValue(String.valueOf(itgr));
+                    }
+                }
+            });*/
+            for(Integer itgr : xOrdered)
+            {
+                xSet.addValue(String.valueOf(itgr));
+            }
+            
+            for(Integer itgr : yOrdered)
+            {
+                ySet.addValue(String.valueOf(itgr));
+            }
+
+            modelContent.append(xSet.toString()).append("\n");
+            modelContent.append(ySet.toString()).append("\n");
+            modelContent.append(value.toString()).append("\n");
+            modelContent.append(isCandidate.toString()).append("\n");
+            modelContent.append(minVal.toString()).append("\n");
+            modelContent.append(required.toString()).append("\n");
+
+            try (Scanner scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePath),
+                            "US-ASCII")) {
+                while (scanner.hasNextLine()) {
+                    modelContent.append(scanner.nextLine()).append("\n");
+                }
+            }
+
+            FileWriter modelFile =
+                    new FileWriter(Calculation.outputModelPath);
+
+            modelFile.write(modelContent.toString());
+            modelFile.close();
             if (hasGams) {
-                org.neos.gams.Set xSet = new org.neos.gams.Set("x", "X coordinates");
-                org.neos.gams.Set ySet = new org.neos.gams.Set("y", "X coordinates");
-                gSets.add(xSet);
-                gSets.add(ySet);
-                Parameter value = new Parameter("patchValue(x,y)", "Patch values");
-                Parameter isCandidate = new Parameter("isCandidate(x,y)", "Is a candidate");
-                Scalar minVal =
-                        new Scalar(
-                        "minVal",
-                        "Minimally acceptable value",
-                        String.valueOf(LumberCompany.MIN_VALUE));
-                Scalar required =
-                        new Scalar(
-                        "requiredPatches",
-                        "Required number of patches to cut",
-                        String.valueOf(requiredHabitats));
-                
-                for(Patch candidate : habitatCandidates)
-                {
-                    value.add(candidate.x + "." + candidate.y, String.valueOf(candidate.calcValue()));
-                    isCandidate.add(candidate.x + "." + candidate.y, "1");
-                    if(xValues.get(candidate.x) == null)
-                    {
-                        xValues.put(candidate.x, candidate.x);
-                        xOrdered.add(candidate.x);
-                    }
-                    if(yValues.get(candidate.y) == null)
-                    {
-                        yValues.put(candidate.y, candidate.y);
-                        yOrdered.add(candidate.y);
-                    }
-                }
-                
-                final ArrayList<org.neos.gams.Set> fSets = gSets;
-                
-                /*
-                 * Add set members in parallel.
-                 */
-                Parallel.withIndex(0, 1, new Parallel.Each() {
-
-                    @Override
-                    public void run(int i) {
-                        PriorityQueue<Integer> xO = fOrderedSet.get(i);
-                        for (Integer itgr : xO) {
-                            fSets.get(i).addValue(String.valueOf(itgr));
-                        }
-                    }
-                });
-                
-                modelContent.append(xSet.toString()).append("\n");
-                modelContent.append(ySet.toString()).append("\n");
-                modelContent.append(value.toString()).append("\n");
-                modelContent.append(isCandidate.toString()).append("\n");
-                modelContent.append(minVal.toString()).append("\n");
-                modelContent.append(required.toString()).append("\n");
-                
-                try (Scanner scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePath),
-                                       "ANSI")) {
-                    while (scanner.hasNextLine()) {
-                        modelContent.append(scanner.nextLine()).append("\n");
-                    }
-                }
-                
-                FileWriter modelFile =
-                        new FileWriter(Calculation.outputModelPath);
-
-                modelFile.write(modelContent.toString());
-                
                 ProcessBuilder pBuilder = new ProcessBuilder("gams");
                 Process gamsProcess = pBuilder.start();
                 BufferedReader gamsReader =
@@ -243,21 +251,12 @@ public class WCConservation {
                     System.err.println(ex.getMessage());
                 }
                 String line;
-                while((line = gamsReader.readLine()) != null)
-                {
+                while ((line = gamsReader.readLine()) != null) {
                     resultsBuilder.append(line).append("\n");
                 }
             }
         } catch(IOException ex) {
             System.err.println("Error: running GAMS locally failed: " + ex.getMessage());
-        }
-        try {
-            FileWriter modelWriter = new FileWriter(".\\MODEL.gms");
-            modelWriter.write(modelContent.toString());
-            modelWriter.close();
-        } catch (IOException ex) {
-            //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
-            System.err.println("Failed to write out model file.");
         }
         
         if(resultsBuilder.length() == 0)
