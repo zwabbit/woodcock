@@ -370,7 +370,7 @@ public class Master extends JFrame{
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
-            conservGroup.queueDevelopedPatch(developedArea, waterDepthTree, forestRtree, x, y, p);
+            conservGroup.queueDevelopedPatch(developedArea, waterDepthTree, x, y, p);
             
             sp.setX(p.x);
             sp.setY(p.y);
