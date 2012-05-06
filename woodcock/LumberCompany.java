@@ -93,18 +93,21 @@ public class LumberCompany {
             return candidates.size();
         }
         
+        PriorityQueue<Patch> canClone = new PriorityQueue<>(candidates);
+        PriorityQueue<Patch> lumClone = new PriorityQueue<>(lumberCandidates);
+        
         int cut = 0;
         int cutCon = 0;
         HashMap<List<Integer>, Patch> alreadyPopped = new HashMap<>();
-        while(cut < harvestLimit && lumberCandidates.size() > 0)
+        while(cut < harvestLimit && lumClone.size() > 0)
         {
-            Patch conCan = candidates.peek();
-            Patch lCan = lumberCandidates.peek();
+            Patch conCan = canClone.peek();
+            Patch lCan = lumClone.peek();
             if(conCan == null)
             {
                 if(lCan == null) break;
                 
-                lCan = lumberCandidates.remove();
+                lCan = lumClone.remove();
                 if(alreadyPopped.get(lCan.key) == null)
                 {
                     cutSelect.add(lCan);
@@ -116,7 +119,7 @@ public class LumberCompany {
             }
             if(lCan == null)
             {
-                conCan = candidates.remove();
+                conCan = canClone.remove();
                 if(alreadyPopped.get(conCan.key) == null)
                 {
                     cutSelect.add(conCan);
@@ -128,7 +131,7 @@ public class LumberCompany {
             
             if(conCan.lumberProfit >= lCan.lumberProfit)
             {
-                conCan = candidates.remove();
+                conCan = canClone.remove();
                 if(alreadyPopped.get(conCan.key) == null)
                 {
                     cutSelect.add(conCan);
@@ -141,7 +144,7 @@ public class LumberCompany {
                 ++cutCon;
             }
             
-            lCan = lumberCandidates.remove();
+            lCan = lumClone.remove();
             if (alreadyPopped.get(lCan.key) == null) {
                 cutSelect.add(lCan);
                 alreadyPopped.put(lCan.key, lCan);
