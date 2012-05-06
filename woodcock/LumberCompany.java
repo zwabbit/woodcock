@@ -97,6 +97,8 @@ public class LumberCompany {
         PriorityQueue<Patch> lumClone = new PriorityQueue<>(lumberCandidates);
         
         int cut = 0;
+        
+        double currentValue = 0;
         int cutCon = 0;
         HashMap<List<Integer>, Patch> alreadyPopped = new HashMap<>();
         while(cut < harvestLimit && lumClone.size() > 0)
@@ -112,6 +114,7 @@ public class LumberCompany {
                 {
                     cutSelect.add(lCan);
                     alreadyPopped.put(lCan.key, lCan);
+                    currentValue += lCan.lumberProfit;
                     ++cut;
                 }
                 
@@ -124,8 +127,27 @@ public class LumberCompany {
                 {
                     cutSelect.add(conCan);
                     alreadyPopped.put(conCan.key, conCan);
+                    currentValue += lCan.lumberProfit;
                     ++cut;
                 }
+                continue;
+            }
+            
+            if(currentValue >= harvestQuota)
+            {
+                conCan = canClone.remove();
+                
+                if(alreadyPopped.get(conCan.key) == null)
+                {
+                    cutSelect.add(conCan);
+                    alreadyPopped.put(conCan.key, conCan);
+                    currentValue += lCan.lumberProfit;
+                    ++cut;
+                    ++cutCon;
+                    continue;
+                }
+                
+                ++cutCon;
                 continue;
             }
             
@@ -136,18 +158,21 @@ public class LumberCompany {
                 {
                     cutSelect.add(conCan);
                     alreadyPopped.put(conCan.key, conCan);
+                    currentValue += lCan.lumberProfit;
                     ++cut;
                     ++cutCon;
                     continue;
                 }
                 
                 ++cutCon;
+                continue;
             }
             
             lCan = lumClone.remove();
             if (alreadyPopped.get(lCan.key) == null) {
                 cutSelect.add(lCan);
                 alreadyPopped.put(lCan.key, lCan);
+                currentValue += lCan.lumberProfit;
                 ++cut;
                 continue;
             }
