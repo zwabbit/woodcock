@@ -426,11 +426,9 @@ public class Master extends JFrame{
         System.out.println("forest count: " + forestPatches.size());
         System.out.println("forest drawing count: " + sp.countForest);
         // pqueue for both lumber company and conservative group
-        PriorityQueue<Patch> lumberPQueue = new PriorityQueue<>();
-        PriorityQueue<Patch> conserPQueue = new PriorityQueue<>();
-        lumberPQueue = lumCompany.getPQueue();
+        PriorityQueue<Patch> lumberPQueue = lumCompany.getPQueue();
+        PriorityQueue<Patch> conserPQueue = conservGroup.getPQueue();
         System.out.println("lumberPQueue size : " + lumberPQueue.size());
-        conserPQueue = conservGroup.getPQueue();
         System.out.println("conserPQueue : " + conserPQueue.size());
         
         System.out.println("Conservation cutting candidates: " + conservGroup.habitatCandidates.size());
