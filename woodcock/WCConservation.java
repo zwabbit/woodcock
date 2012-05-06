@@ -286,8 +286,8 @@ public class WCConservation {
             System.err.println("Error submitting results to NEOS.");
             return null;
         }
-        try {
-            FileWriter solWriter = new FileWriter(Calculation.outputSolPath);
+        try (FileWriter solWriter = new FileWriter(Calculation.outputSolPath))
+        {
             solWriter.write(results);
             solWriter.close();
         } catch (IOException ex) {
