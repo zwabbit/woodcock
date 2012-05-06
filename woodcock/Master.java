@@ -82,7 +82,7 @@ public void paint(Graphics g) {
         Path landPath = Paths.get("landingsuitability.txt");
         HashMap<List<Integer>, Patch> patches = new HashMap<>(); // update every year
         
-        ArrayList<Patch> forestPatches = new ArrayList<>();
+        forestPatches = new ArrayList<>();
         LinkedList<Patch> grassPatches = new LinkedList<>();
         
         int lowestDepth = Integer.MAX_VALUE;
@@ -220,6 +220,8 @@ public void paint(Graphics g) {
             System.exit(-1);
         }
         
+        System.gc();
+        
         System.out.println("Done reading in cover data");
         
         try (BufferedReader reader = Files.newBufferedReader(waterPath, charset))
@@ -259,9 +261,10 @@ public void paint(Graphics g) {
                         patch.waterDepth = wDepth;
                         if(lowestDepth > wDepth)
                             lowestDepth = wDepth;
+                        /*
                         if(waterDepthLevels.get(wDepth) == null)
                             waterDepthLevels.put(wDepth, wDepth);
-                        
+                        */
                         if(wDepth <= 80 && patch.landCover != 111)
                         {
                             //Insert into R tree.
@@ -285,15 +288,19 @@ public void paint(Graphics g) {
             System.exit(-1);
         }
         
+        System.gc();
+        
         System.out.println("Done reading in water data");
         System.out.println("Found water: " + foundWater);
+        /*
         Iterator it = waterDepthLevels.entrySet().iterator();
         while(it.hasNext())
         {
             Map.Entry<Integer, Integer> entry = (Map.Entry<Integer, Integer>)it.next();
             System.out.println(entry.getKey());
         }
-        
+        */
+        /*
         try (BufferedReader reader = Files.newBufferedReader(landPath, charset))
         {
             /*
@@ -303,7 +310,7 @@ public void paint(Graphics g) {
              * harvesting specific patches based on distance
              * from the target patch to the nearest landing
              * patch.
-             */
+             *
             String line = reader.readLine();
             String[] sCol = line.split("\\s+");
             columns = Integer.parseInt(sCol[1]);
@@ -338,7 +345,7 @@ public void paint(Graphics g) {
                          * we feel like it, we can create another R tree
                          * for the moderately suitable and attribute a cost
                          * function of some sort for the two.
-                         */
+                         *
                         if(landing == 3)
                         {
                         	AABB box = new AABB(cIndex, rIndex);
@@ -360,7 +367,8 @@ public void paint(Graphics g) {
             System.err.format("IOException: %s\n", ioe);
             System.exit(-1);
         }
-       
+        */
+        System.gc();
         System.out.println("Done loading in files.");
         
         final Master sp = new Master();
@@ -418,7 +426,7 @@ public void paint(Graphics g) {
             }
         }
                     
-        sp.repaint();
+        //sp.repaint();
         
         System.out.println("Not suitable forest count: " + notSuitable);
         System.out.println("forest count: " + forestPatches.size());

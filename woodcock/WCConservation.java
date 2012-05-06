@@ -6,6 +6,8 @@ package woodcock;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neos.client.NeosClient;
 import org.neos.client.NeosJob;
 import org.neos.client.NeosJobXml;
@@ -27,6 +29,8 @@ public class WCConservation {
     public HashMap<List<Integer>, Patch> candidateMap;
     public static final int requiredHabitats = 500;
     
+    public PriorityQueue<Patch> cutCandidates;
+    
     public int rangeDevelop = 1;
     
     public RTree candidateTree = null;
@@ -39,6 +43,7 @@ public class WCConservation {
     public WCConservation(int forestPatchSize) {
         comparator = new PatchLumberComparator();
         habitatCandidates = new PriorityQueue<>(forestPatchSize, comparator);
+        cutCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         candidateMap = new HashMap<>();
         candidateTree = new RTree(4, 8);
 
@@ -221,10 +226,11 @@ public class WCConservation {
                 ySet.addValue(String.valueOf(itgr));
             }
 
+            modelContent.append("$offdigit").append("\n");
             modelContent.append(xSet.toString()).append("\n");
             modelContent.append(ySet.toString()).append("\n");
             modelContent.append(value.toString()).append("\n");
-            modelContent.append(isCandidate.toString()).append("\n");
+            //modelContent.append(isCandidate.toString()).append("\n");
             modelContent.append(minVal.toString()).append("\n");
             modelContent.append(required.toString()).append("\n");
 
@@ -234,9 +240,11 @@ public class WCConservation {
                     modelContent.append(scanner.nextLine()).append("\n");
                 }
             }
+            /*
             try (FileWriter modelFile = new FileWriter(Calculation.outputModelPath)) {
                 modelFile.write(modelContent.toString());
             }
+            */
             if (hasGams) {
                 ProcessBuilder pBuilder = new ProcessBuilder("gams");
                 Process gamsProcess = pBuilder.start();
@@ -260,8 +268,12 @@ public class WCConservation {
         if(resultsBuilder.length() == 0)
         {
             NeosClient neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);
-            NeosJobXml jobXml = new NeosJobXml("mip", "xpress", modelContent.toString());
+            NeosJobXml jobXml = new NeosJobXml("milp", "XpressMP", "GAMS");
+            jobXml.addParam("model", modelContent.toString());
+            jobXml.addParam("email", "ziliang@cs.wisc.edu");
             NeosJob neosJob = neosClient.submitJob(jobXml.toXMLString());
+            System.out.println("Job ID: " + neosJob.getJobNo());
+            System.out.println("Job password: " + neosJob.getJobPass());
             results = neosJob.getResult();
         }
         else
@@ -271,15 +283,23 @@ public class WCConservation {
         
         if(results.isEmpty())
         {
+            System.err.println("Error submitting results to NEOS.");
             return null;
+        }
+        try {
+            FileWriter solWriter = new FileWriter(Calculation.outputSolPath);
+            solWriter.write(results);
+            solWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         SolutionParser parser = new SolutionParser(results);
         if(parser.getModelStatusCode() != 1)
             return null;
         
-        PriorityQueue<Patch> selectedPatches = new PriorityQueue<>(500, comparator);
-        SolutionData bCut = parser.getSymbol("cut", SolutionData.VAR, habitatCandidates.size());
+        cutCandidates.clear();
+        SolutionData bCut = parser.getSymbol("cut", SolutionData.VAR, 2);
         
         for(SolutionRow sRow : bCut.getRows())
         {
@@ -290,10 +310,10 @@ public class WCConservation {
                 int yCoord = Integer.valueOf(sRow.getIndex(1));
                 List<Integer> key = Arrays.asList(xCoord, yCoord);
                 Patch cutPatch = candidateMap.get(key);
-                selectedPatches.add(cutPatch);
+                cutCandidates.add(cutPatch);
             }
         }
         
-        return selectedPatches;
+        return cutCandidates;
     }
 }
