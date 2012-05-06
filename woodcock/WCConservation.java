@@ -234,12 +234,9 @@ public class WCConservation {
                     modelContent.append(scanner.nextLine()).append("\n");
                 }
             }
-
-            FileWriter modelFile =
-                    new FileWriter(Calculation.outputModelPath);
-
-            modelFile.write(modelContent.toString());
-            modelFile.close();
+            try (FileWriter modelFile = new FileWriter(Calculation.outputModelPath)) {
+                modelFile.write(modelContent.toString());
+            }
             if (hasGams) {
                 ProcessBuilder pBuilder = new ProcessBuilder("gams");
                 Process gamsProcess = pBuilder.start();
