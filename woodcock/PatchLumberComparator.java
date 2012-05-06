@@ -1,6 +1,6 @@
 package woodcock;
 
-import java.util.*;
+import java.util.Comparator;
 //Comparator for patch that is a lumber gathering area
 //the nearer the lumber gathering area, the more profitable for lumber company;
 //for pqueue usage
