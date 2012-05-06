@@ -16,9 +16,15 @@ public class LumberCompany {
      * how desirable or profitable cutting a patch would be.
      */
 
-    public static int MIN_VALUE = 250;
+    public static final double MIN_VALUE = 250;
     private PriorityQueue<Patch> lumberCandidates;
     public HashMap<List<Integer>, Patch> candidateMap;
+    
+    public int harvestLimit = 750;
+    
+    public double requiredMin = MIN_VALUE;
+    
+    public double harvestQuota = WCConservation.requiredHabitats * MIN_VALUE;
 
     public LumberCompany(int forestPatchSize) {
         Comparator<Patch> comparator = new PatchLumberComparator();
@@ -67,4 +73,77 @@ public class LumberCompany {
      *
      * @return one of the point within the range
      */
+    
+    public double ClearCutConservation(PriorityQueue<Patch> candidates)
+    {
+        double value = 0;
+        for(Patch candidate : candidates)
+        {
+            value += candidate.lumberProfit;
+        }
+        
+        return value;
+    }
+    
+    public PriorityQueue<Patch> ConservationHarvested(PriorityQueue<Patch> candidates)
+    {
+        if(ClearCutConservation(candidates) >= harvestQuota)
+            return candidates;
+        
+        PriorityQueue<Patch> cutSelect = new PriorityQueue<>();
+        int cut = 0;
+        HashMap<List<Integer>, Patch> alreadyPopped = new HashMap<>();
+        while(cut < harvestLimit && lumberCandidates.size() > 0)
+        {
+            Patch conCan = candidates.peek();
+            Patch lCan = lumberCandidates.peek();
+            if(conCan == null)
+            {
+                if(lCan == null) break;
+                
+                lCan = lumberCandidates.remove();
+                if(alreadyPopped.get(lCan.key) == null)
+                {
+                    cutSelect.add(lCan);
+                    alreadyPopped.put(lCan.key, lCan);
+                    ++cut;
+                }
+                
+                continue;
+            }
+            if(lCan == null)
+            {
+                conCan = candidates.remove();
+                if(alreadyPopped.get(conCan.key) == null)
+                {
+                    cutSelect.add(conCan);
+                    alreadyPopped.put(conCan.key, conCan);
+                    ++cut;
+                }
+                continue;
+            }
+            
+            if(conCan.lumberProfit >= lCan.lumberProfit)
+            {
+                conCan = candidates.remove();
+                if(alreadyPopped.get(conCan.key) == null)
+                {
+                    cutSelect.add(conCan);
+                    alreadyPopped.put(conCan.key, conCan);
+                    ++cut;
+                    continue;
+                }
+            }
+            
+            lCan = lumberCandidates.remove();
+            if (alreadyPopped.get(lCan.key) == null) {
+                cutSelect.add(lCan);
+                alreadyPopped.put(lCan.key, lCan);
+                ++cut;
+                continue;
+            }
+        }
+        
+        return cutSelect;
+    }
 }

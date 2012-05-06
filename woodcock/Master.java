@@ -474,7 +474,8 @@ public class Master extends JFrame{
                 public void run(int i) {
                     Patch p = finalForests.get(i);
                     p.growTrees();
-                    if(DEBUG_FLAG) System.out.println("Value at time " + time + " at age " + p.age + ": " + p.calcValue());
+                    p.calcValue();
+                    if(DEBUG_FLAG) System.out.println("Value at time " + time + " at age " + p.age + ": " + p.lumberProfit);
                     sp.setX(p.x);
                     sp.setY(p.y);
         			sp.setForestColor(p.age);

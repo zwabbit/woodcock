@@ -25,7 +25,7 @@ public class WCConservation {
     boolean hasGams = false;
     public PriorityQueue<Patch> habitatCandidates;
     public HashMap<List<Integer>, Patch> candidateMap;
-    int requiredHabitats = 500;
+    public static final int requiredHabitats = 500;
     
     public int rangeDevelop = 1;
     
@@ -33,9 +33,11 @@ public class WCConservation {
     
     public int waterDist = 1;
     int found = 0;
+    
+    Comparator<Patch> comparator = null;
 
     public WCConservation(int forestPatchSize) {
-        Comparator<Patch> comparator = new PatchLumberComparator();
+        comparator = new PatchLumberComparator();
         habitatCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         candidateMap = new HashMap<>();
         candidateTree = new RTree(4, 8);
@@ -147,7 +149,7 @@ public class WCConservation {
         return false;
     }
 
-    public LinkedList<Patch> optimizeCuts() {
+    public PriorityQueue<Patch> optimizeCuts() {
         StringBuilder resultsBuilder = new StringBuilder();
         String results;
         HashMap<Integer, Integer> xValues = new HashMap<>();
@@ -279,7 +281,7 @@ public class WCConservation {
         if(parser.getModelStatusCode() != 1)
             return null;
         
-        LinkedList<Patch> selectedPatches = new LinkedList<>();
+        PriorityQueue<Patch> selectedPatches = new PriorityQueue<>(500, comparator);
         SolutionData bCut = parser.getSymbol("cut", SolutionData.VAR, habitatCandidates.size());
         
         for(SolutionRow sRow : bCut.getRows())
