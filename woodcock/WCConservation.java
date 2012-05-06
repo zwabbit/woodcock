@@ -6,8 +6,6 @@ package woodcock;
 
 import java.io.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neos.client.NeosClient;
 import org.neos.client.NeosJob;
 import org.neos.client.NeosJobXml;
@@ -32,6 +30,9 @@ public class WCConservation {
     public int rangeDevelop = 1;
     
     public RTree candidateTree = null;
+    
+    public int waterDist = 1;
+    int found = 0;
 
     public WCConservation(int forestPatchSize) {
         Comparator<Patch> comparator = new PatchLumberComparator();
@@ -50,7 +51,9 @@ public class WCConservation {
 
     // get the suitable patch for woodcock habitat
     // still have to check against water patch and forest area
-    public boolean checkSuitability(int x, int y, Patch p) {
+    public boolean checkSuitability(Patch p) {
+        int x = p.x;
+        int y = p.y;
         /*
         if (Calculation.rangeQuery(Master.developedArea, x, y, rangeDevelop) != null)
         {
@@ -75,16 +78,14 @@ public class WCConservation {
         }
 
         habitatCandidates.add(p);
-        List<Integer> key = Arrays.asList(p.x, p.y);
-        candidateMap.put(key, p);
+        candidateMap.put(p.key, p);
         candidateTree.insert(p.box);
         
         return true;
     }
 
     public boolean isCandidate(Patch p) {
-        List<Integer> key = Arrays.asList(p.x, p.y);
-        Patch patch = candidateMap.get(key);
+        Patch patch = candidateMap.get(p.key);
         if (patch == null) {
             return false;
         }
@@ -95,8 +96,7 @@ public class WCConservation {
     public PriorityQueue<Patch> getPQueue() {
         return habitatCandidates;
     }
-    static int waterDist = 10;
-    int found = 0;
+    
     public boolean ForceHabitat(ArrayList<Patch> forestPatches)
     {
         int required = 1000;
@@ -132,8 +132,7 @@ public class WCConservation {
             }
             
             habitatCandidates.add(forest);
-            List<Integer> key = Arrays.asList(forest.x, forest.y);
-            candidateMap.put(key, forest);
+            candidateMap.put(forest.key, forest);
             candidateTree.insert(forest.box);
             forest.ClearCut();
             ++found;
@@ -141,9 +140,9 @@ public class WCConservation {
                 return true;
         }
         System.err.println("Forced generation count: " + found);
-        System.err.println("Failed due to dev: " + dev);
-        System.err.println("Failed due to water: " + water);
-        System.err.println("Failed due to candidate: " + candidate);
+        System.err.println("Failed due to distance from developed land: " + dev);
+        System.err.println("Failed due to distance from water: " + water);
+        System.err.println("Failed due to distance from existing candidate: " + candidate);
         waterDist *= 10;
         return false;
     }

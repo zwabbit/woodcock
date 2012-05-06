@@ -393,15 +393,14 @@ public class Master extends JFrame{
             // is within the range of 1; unit distance is in acre
             if(p.age >= 10)
             {
-                if(conservGroup.checkSuitability(x, y, p) == false)
+                if(conservGroup.checkSuitability(p) == false)
                     ++notSuitable;
             }
             else ++notSuitable;
             
             sp.setX(p.x);
             sp.setY(p.y);
-			sp.setForestColor(p.age);
-			sp.repaint();
+            sp.setForestColor(p.age);
 			
             /*
              * If a suitable candidate, check age of forest.  If already
@@ -420,6 +419,8 @@ public class Master extends JFrame{
                 got = conservGroup.ForceHabitat(forestPatches);
             }
         }
+        
+        sp.repaint();
         
         System.out.println("Not suitable forest count: " + notSuitable);
         System.out.println("forest count: " + forestPatches.size());
@@ -487,7 +488,7 @@ public class Master extends JFrame{
             for(Patch forest : forestPatches)
             {
                 if(forest.age < 10) youngForests.insert(forest.box);
-                else conservGroup.checkSuitability(forest.x, forest.y, forest);
+                else conservGroup.checkSuitability(forest);
             }
             
             conservGroup.optimizeCuts();

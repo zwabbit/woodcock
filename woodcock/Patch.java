@@ -4,6 +4,8 @@
  */
 package woodcock;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -17,6 +19,7 @@ public class Patch{
     public static Random rand = null;
     public double lumberProfit;
     public AABB box = null;
+    public List<Integer> key = null;
     
     double[][] growthMatrix = null;
     double ingrowthMatrix;
@@ -31,6 +34,7 @@ public class Patch{
         age = 0;
         if(rand == null) rand = new Random();
         box = new AABB(this.x, this.y);
+        key = Arrays.asList(this.x, this.y);
     }
     
     public Patch(int x, int y, int landCover, int waterDepth, int roadLength, int soil, int canopy)
