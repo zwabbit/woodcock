@@ -6,6 +6,7 @@ package woodcock;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.WindowAdapter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -14,65 +15,52 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 /**
  *
  * @author Z98
  */
 public class Master extends JFrame{
-    private int x, y, color, countForest; 
+    public static int x, y, color; 
     public static boolean DEBUG_FLAG = false;
     // Function to draw patches of forest, the color changes according to age, older forest has lighter color
     public Master() {
-        countForest = 0;
-    }
-	
-	public void setForestColor(int color) {
-		color *= 4;
-		  if(color > 255) {
-			  this.color = 255;
-			  return;
-		  }
-		  this.color = color;
-	  }
-	
-	public int getColor() {
-		  return color;
-	  }
-	  
-	  public void setX(int x) {
-		  this.x = x;
-	  }
-	  
-    @Override
-    public int getX() {
-        return x;
-    }
-	  
-	  public void setY(int y) {
-		  this.y = y;
-	  }
-	  
-    @Override
-    public int getY() {
-        return y;
+        super("Vilas County Forest Map");
+        //JScrollPane jp = new JScrollPane();
+       
     }
 	  
     @Override
-    public void paint(Graphics g) {
-		int a = getColor();
-		Color c = new Color(0, a, 0);
-		Graphics g1 = g;
-		countForest++;
-		g1.drawRect(10 + x, 32 + y, 1, 1);
-		g1.setColor(c);
-		g1.fillRect(10 + x, 32 + y, 1, 1);  
-	}
+public void paint(Graphics g) {
+        int i = 0;
+        while (i < forestPatches.size()) {
+            Patch p = forestPatches.get(i);
+            Master.color = p.age;
+            Master.x = p.x;
+            Master.y = p.y;
+
+            color += 50;
+            if (color > 255) {
+                color = 255;
+            }
+            Color c = new Color(0, color, 0);
+            Graphics g1 = g;
+            g1.setColor(c);
+            //g1.drawRect(10 + x, 32 + y, 1, 1);
+            validate();
+            g1.fillRect(10 + x, 32 + y, 1, 1);
+            validate();
+            repaint();
+            i++;
+        }
+    }
 	
     public static RTree waterDepth = null;
     public static RTree timberSuitable = null;
     public static RTree allForests = null;
     public static RTree youngForests = null;
     public static RTree developedArea = null;
+    public static ArrayList<Patch> forestPatches= null;
     
     static int columns;
     static int rows;
@@ -107,7 +95,18 @@ public class Master extends JFrame{
         youngForests = new RTree(4,8);
         developedArea = new RTree(4, 8);
         
-        
+        // input box for lumber company, still haven't done
+        // none functional go and step buttons
+        new InputField().setVisible(true);
+        //if (InputField.clicked == true) {
+        //    System.out.println("clicked");
+        //}
+        //int number1 = InputField.num1;
+        //int number2 = InputField.num2;
+        //while (InputField.num1 == 0|| InputField.num2 == 0) {
+        //    System.out.println("0");
+        //}
+        //System.out.println("num1, num2: " + InputField.num1 + " " + InputField.num2);
         
         Calculation.initializeWeightedRandom();
         Calculation.initializeGrowth();
@@ -318,6 +317,7 @@ public class Master extends JFrame{
             
             while((line = reader.readLine()) != null)
             {
+                
                 String cols[] = line.split("\\s+");
                 for(String col : cols)
                 {
@@ -398,9 +398,7 @@ public class Master extends JFrame{
             }
             else ++notSuitable;
             
-            sp.setX(p.x);
-            sp.setY(p.y);
-            sp.setForestColor(p.age);
+
 			
             /*
              * If a suitable candidate, check age of forest.  If already
@@ -419,12 +417,11 @@ public class Master extends JFrame{
                 got = conservGroup.ForceHabitat(forestPatches);
             }
         }
-        
+                    
         sp.repaint();
         
         System.out.println("Not suitable forest count: " + notSuitable);
         System.out.println("forest count: " + forestPatches.size());
-        System.out.println("forest drawing count: " + sp.countForest);
         // pqueue for both lumber company and conservative group
         PriorityQueue<Patch> lumberPQueue = lumCompany.getPQueue();
         PriorityQueue<Patch> conserPQueue = conservGroup.getPQueue();
@@ -474,13 +471,10 @@ public class Master extends JFrame{
                     p.growTrees();
                     p.calcValue();
                     if(DEBUG_FLAG) System.out.println("Value at time " + time + " at age " + p.age + ": " + p.lumberProfit);
-                    sp.setX(p.x);
-                    sp.setY(p.y);
-        			sp.setForestColor(p.age);
-        			sp.repaint();
+                    //p.age++;
                 }
             });
-            
+            sp.repaint();
             youngForests = new RTree(4, 8);
             conservGroup.candidateMap.clear();
             conservGroup.habitatCandidates.clear();

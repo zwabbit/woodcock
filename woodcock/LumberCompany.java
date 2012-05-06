@@ -35,17 +35,17 @@ public class LumberCompany {
     // check within the range 1000 for suitable landing area. 
     // assume that the shipping cost is a direct approximation to the distance travelled
     public void queueTimberPatch(RTree timberSuitable, int x, int y, Patch p) {
-        int rangeLanding = 100;
-        while (rangeLanding < 1000) {
-            if (Calculation.rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
-                p.lumberProfit -= rangeLanding;
+        //int rangeLanding = 100;
+        //while (rangeLanding < 1000) {
+            //if (Calculation.rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
+              //  p.lumberProfit -= rangeLanding;
                 if (p.lumberProfit > MIN_VALUE) {
                     lumberCandidates.add(p);
                     List<Integer> key = Arrays.asList(p.x, p.y);
                     candidateMap.put(key, p);
-                }
-            }
-            rangeLanding += 100;
+                //}
+            //}
+           // rangeLanding += 100;
         }
     }
 
