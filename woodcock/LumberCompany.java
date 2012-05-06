@@ -85,13 +85,16 @@ public class LumberCompany {
         return value;
     }
     
-    public PriorityQueue<Patch> ConservationHarvested(PriorityQueue<Patch> candidates)
+    public int ConservationHarvested(PriorityQueue<Patch> candidates, PriorityQueue<Patch> cutSelect)
     {
         if(ClearCutConservation(candidates) >= harvestQuota)
-            return candidates;
+        {
+            cutSelect.addAll(candidates);
+            return candidates.size();
+        }
         
-        PriorityQueue<Patch> cutSelect = new PriorityQueue<>();
         int cut = 0;
+        int cutCon = 0;
         HashMap<List<Integer>, Patch> alreadyPopped = new HashMap<>();
         while(cut < harvestLimit && lumberCandidates.size() > 0)
         {
@@ -131,8 +134,11 @@ public class LumberCompany {
                     cutSelect.add(conCan);
                     alreadyPopped.put(conCan.key, conCan);
                     ++cut;
+                    ++cutCon;
                     continue;
                 }
+                
+                ++cutCon;
             }
             
             lCan = lumberCandidates.remove();
@@ -144,6 +150,6 @@ public class LumberCompany {
             }
         }
         
-        return cutSelect;
+        return cutCon;
     }
 }
