@@ -314,6 +314,10 @@ public class WCConservation {
             }
         }
         
+        double totalCost = parser.getObjective();
+        
+        System.out.println("Total subsidy cost: " + totalCost);
+        
         return cutCandidates;
     }
 }

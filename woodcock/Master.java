@@ -21,6 +21,7 @@ import javax.swing.JFrame;
 public class Master extends JFrame{
     public static int x, y, color; 
     public static boolean DEBUG_FLAG = false;
+    public static boolean SCENARIO_ONE = true;
     // Function to draw patches of forest, the color changes according to age, older forest has lighter color
     public Master() {
         super("Vilas County Forest Map");
@@ -488,7 +489,20 @@ public void paint(Graphics g) {
                 else conservGroup.checkSuitability(forest);
             }
             
-            conservGroup.optimizeCuts();
+            PriorityQueue<Patch> conCuts = conservGroup.optimizeCuts();
+            double conValue = 0;
+            
+            if(SCENARIO_ONE)
+            {
+                conValue = lumCompany.ClearCutConservation(conCuts);
+            }
+            else
+            {
+                PriorityQueue<Patch> actualCuts = new PriorityQueue<>();
+                lumCompany.ConservationHarvested(conCuts, actualCuts);
+            }
+            
+            System.out.println("Total value from harvested patches: " + conValue);
             ++tick;
         }
     }

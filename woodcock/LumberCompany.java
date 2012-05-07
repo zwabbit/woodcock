@@ -187,4 +187,17 @@ public class LumberCompany {
         
         return cutCon;
     }
+    
+    public double CalcProfit(PriorityQueue<Patch> patches)
+    {
+        if(patches == null)
+            return 0;
+        double value = 0;
+        for(Patch p : patches)
+        {
+            value += p.lumberProfit;
+        }
+        
+        return value;
+    }
 }
