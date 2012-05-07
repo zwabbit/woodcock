@@ -10,7 +10,7 @@ package woodcock;
  */
 public class InputField extends javax.swing.JFrame {
 public static int num1, num2, result;
-public static boolean clicked, step;
+public static boolean clicked, step, add;
     /**
      * Creates new form InputField
      */
@@ -18,6 +18,7 @@ public static boolean clicked, step;
         initComponents();
         clicked = false;
         step = false;
+        add = false;
     }
 
     /**
@@ -196,6 +197,8 @@ public static boolean clicked, step;
         // We have to parse the text to a type float.
         num1 = Integer.parseInt(jTextField1.getText());
         num2 = Integer.parseInt(jTextField2.getText());
+        num2 *= 500;
+        add = true;
         result = num1 + num2;
         jTextField3.setText(String.valueOf(result));
     }//GEN-LAST:event_ADDActionPerformed

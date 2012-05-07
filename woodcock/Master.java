@@ -425,7 +425,14 @@ public class Master extends JFrame {
             System.out.println("2");
         }
         while (true) {
-            //while (InputField.clicked == true || InputField.step == true) {
+            // clicked means go; step means just step through once
+            // go can be stopped by clicking go again the next time 
+            while (InputField.clicked == true || InputField.step == true) {
+                // for checking purpose
+                //System.out.println("entered");
+                
+                // changing the step button value to false
+                InputField.step = false;
                 final int time = tick;
                 conservGroup.candidateTree = new RTree(4, 8);
                 Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
@@ -477,7 +484,8 @@ public class Master extends JFrame {
                 System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);
                 ++tick;
             }
-           // InputField.step = true;
-        //}
+            // added print to make sure the code try the while loop everytime
+            System.out.print("");
+        }
     }
 }

@@ -311,9 +311,9 @@ public class WCConservation {
                 int yCoord = Integer.valueOf(sRow.getIndex(1));
                 List<Integer> key = Arrays.asList(xCoord, yCoord);
                 Patch cutPatch = candidateMap.get(key);
-                //if (cutPatch != null) {
+                if (cutPatch != null) {
                     cutCandidates.add(cutPatch);
-                //}
+                }
             }
         }
         
