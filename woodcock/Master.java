@@ -6,7 +6,6 @@ package woodcock;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.event.WindowAdapter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -15,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import javax.swing.JFrame;
-import javax.swing.JScrollPane;
 /**
  *
  * @author Z98
@@ -23,6 +21,7 @@ import javax.swing.JScrollPane;
 public class Master extends JFrame{
     public static int x, y, color; 
     public static boolean DEBUG_FLAG = false;
+    public static boolean SCENARIO_ONE = true;
     // Function to draw patches of forest, the color changes according to age, older forest has lighter color
     public Master() {
         super("Vilas County Forest Map");
@@ -31,10 +30,8 @@ public class Master extends JFrame{
     }
 	  
     @Override
-public void paint(Graphics g) {
-        int i = 0;
-        while (i < forestPatches.size()) {
-            Patch p = forestPatches.get(i);
+    public void paint(Graphics g) {
+        for (Patch p : forestPatches) {
             Master.color = p.age;
             Master.x = p.x;
             Master.y = p.y;
@@ -51,7 +48,6 @@ public void paint(Graphics g) {
             g1.fillRect(10 + x, 32 + y, 1, 1);
             validate();
             repaint();
-            i++;
         }
     }
 	
@@ -384,8 +380,6 @@ public void paint(Graphics g) {
         int notSuitable = 0;
         for(Patch p : forestPatches)
         {
-            int x = p.x;
-            int y = p.y;
             /*
              * Check hydrology info to see if this patch is a suitable
              * candidate for cutting.  If not, skip.
@@ -395,7 +389,7 @@ public void paint(Graphics g) {
             // p.lumberProfit for comparison against other forest patch in pqueue
             p.calcValue();
             // check if the patch is suitable for lumber
-            lumCompany.queueTimberPatch(timberSuitable, x, y, p);
+            lumCompany.queueTimberPatch(timberSuitable, p);
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
@@ -480,6 +474,9 @@ public void paint(Graphics g) {
         
         System.out.println("Done generating forests.\n");
         
+        System.out.print("Initiating scenario ");
+        if(SCENARIO_ONE) System.out.println("1");
+        else System.out.println("2");
         while(true)
         {
             final int time = tick;
@@ -502,10 +499,36 @@ public void paint(Graphics g) {
             for(Patch forest : forestPatches)
             {
                 if(forest.age < 10) youngForests.insert(forest.box);
-                else conservGroup.checkSuitability(forest);
             }
             
-            conservGroup.optimizeCuts();
+            for(Patch forest : forestPatches)
+            {
+                conservGroup.checkSuitability(forest);
+            }
+            
+            PriorityQueue<Patch> conCuts;
+            if(conservGroup.habitatCandidates.size() > 500) conCuts = conservGroup.optimizeCuts();
+            else
+            {
+                conCuts = conservGroup.habitatCandidates;
+                System.err.println("Less than 500 cutting candidates found this timestep: " + conCuts.size());
+            }
+            double totalCutValue;
+            
+            if(SCENARIO_ONE)
+            {
+                totalCutValue = lumCompany.ClearCut(conCuts);
+            }
+            else
+            {
+                double conValue = lumCompany.CalcProfit(conCuts);
+                System.err.println("Conservation cut value: " + conValue);
+                PriorityQueue<Patch> actualCuts = new PriorityQueue<>();
+                lumCompany.ConservationHarvested(conCuts, actualCuts);
+                totalCutValue = lumCompany.ClearCut(actualCuts);
+            }
+            
+            System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);
             ++tick;
         }
     }

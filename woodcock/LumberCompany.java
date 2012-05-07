@@ -34,7 +34,7 @@ public class LumberCompany {
 
     // check within the range 1000 for suitable landing area. 
     // assume that the shipping cost is a direct approximation to the distance travelled
-    public void queueTimberPatch(RTree timberSuitable, int x, int y, Patch p) {
+    public void queueTimberPatch(RTree timberSuitable, Patch p) {
         //int rangeLanding = 100;
         //while (rangeLanding < 1000) {
             //if (Calculation.rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
@@ -74,12 +74,12 @@ public class LumberCompany {
      * @return one of the point within the range
      */
     
-    public double ClearCutConservation(PriorityQueue<Patch> candidates)
+    public double ClearCut(PriorityQueue<Patch> candidates)
     {
         double value = 0;
         for(Patch candidate : candidates)
         {
-            value += candidate.lumberProfit;
+            value += candidate.ClearCut();
         }
         
         return value;
@@ -87,7 +87,7 @@ public class LumberCompany {
     
     public int ConservationHarvested(PriorityQueue<Patch> candidates, PriorityQueue<Patch> cutSelect)
     {
-        if(ClearCutConservation(candidates) >= harvestQuota)
+        if(CalcProfit(candidates) >= harvestQuota)
         {
             cutSelect.addAll(candidates);
             return candidates.size();
@@ -178,6 +178,26 @@ public class LumberCompany {
             }
         }
         
+        while(canClone.size() > 0)
+        {
+            Patch conCan = canClone.remove();
+            if(alreadyPopped.get(conCan.key) != null)
+                ++cutCon;
+        }
+        
         return cutCon;
+    }
+    
+    public double CalcProfit(PriorityQueue<Patch> patches)
+    {
+        if(patches == null)
+            return 0;
+        double value = 0;
+        for(Patch p : patches)
+        {
+            value += p.lumberProfit;
+        }
+        
+        return value;
     }
 }

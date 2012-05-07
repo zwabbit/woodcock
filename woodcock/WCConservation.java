@@ -138,7 +138,7 @@ public class WCConservation {
                 continue;
             }
             
-            habitatCandidates.add(forest);
+            //habitatCandidates.add(forest);
             candidateMap.put(forest.key, forest);
             candidateTree.insert(forest.box);
             forest.ClearCut();
@@ -313,6 +313,10 @@ public class WCConservation {
                 cutCandidates.add(cutPatch);
             }
         }
+        
+        double totalCost = parser.getObjective();
+        
+        System.out.println("Total subsidy cost: " + totalCost);
         
         return cutCandidates;
     }
