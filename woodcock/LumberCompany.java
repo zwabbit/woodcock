@@ -74,12 +74,12 @@ public class LumberCompany {
      * @return one of the point within the range
      */
     
-    public double ClearCutConservation(PriorityQueue<Patch> candidates)
+    public double ClearCut(PriorityQueue<Patch> candidates)
     {
         double value = 0;
         for(Patch candidate : candidates)
         {
-            value += candidate.lumberProfit;
+            value += candidate.ClearCut();
         }
         
         return value;
@@ -87,7 +87,7 @@ public class LumberCompany {
     
     public int ConservationHarvested(PriorityQueue<Patch> candidates, PriorityQueue<Patch> cutSelect)
     {
-        if(ClearCutConservation(candidates) >= harvestQuota)
+        if(CalcProfit(candidates) >= harvestQuota)
         {
             cutSelect.addAll(candidates);
             return candidates.size();

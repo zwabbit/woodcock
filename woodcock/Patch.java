@@ -295,9 +295,11 @@ public class Patch{
         return lumberProfit;
     }
     
-    public void ClearCut()
+    public double ClearCut()
     {
         for(int index = 0; index < 12; index++)
             trees[index] = 0;
+        
+        return lumberProfit;
     }
 }

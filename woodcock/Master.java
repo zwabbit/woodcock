@@ -486,7 +486,11 @@ public class Master extends JFrame{
             for(Patch forest : forestPatches)
             {
                 if(forest.age < 10) youngForests.insert(forest.box);
-                else conservGroup.checkSuitability(forest);
+            }
+            
+            for(Patch forest : forestPatches)
+            {
+                conservGroup.checkSuitability(forest);
             }
             
             PriorityQueue<Patch> conCuts;
@@ -500,7 +504,7 @@ public class Master extends JFrame{
             
             if(SCENARIO_ONE)
             {
-                totalCutValue = lumCompany.ClearCutConservation(conCuts);
+                totalCutValue = lumCompany.ClearCut(conCuts);
             }
             else
             {
@@ -508,7 +512,7 @@ public class Master extends JFrame{
                 System.err.println("Conservation cut value: " + conValue);
                 PriorityQueue<Patch> actualCuts = new PriorityQueue<>();
                 lumCompany.ConservationHarvested(conCuts, actualCuts);
-                totalCutValue = lumCompany.ClearCutConservation(actualCuts);
+                totalCutValue = lumCompany.ClearCut(actualCuts);
             }
             
             System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);

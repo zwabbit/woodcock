@@ -138,7 +138,7 @@ public class WCConservation {
                 continue;
             }
             
-            habitatCandidates.add(forest);
+            //habitatCandidates.add(forest);
             candidateMap.put(forest.key, forest);
             candidateTree.insert(forest.box);
             forest.ClearCut();
