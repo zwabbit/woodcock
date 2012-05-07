@@ -34,7 +34,7 @@ public class LumberCompany {
 
     // check within the range 1000 for suitable landing area. 
     // assume that the shipping cost is a direct approximation to the distance travelled
-    public void queueTimberPatch(RTree timberSuitable, int x, int y, Patch p) {
+    public void queueTimberPatch(RTree timberSuitable, Patch p) {
         //int rangeLanding = 100;
         //while (rangeLanding < 1000) {
             //if (Calculation.rangeQuery(timberSuitable, x, y, rangeLanding) != null) {

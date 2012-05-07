@@ -382,8 +382,6 @@ public void paint(Graphics g) {
         int notSuitable = 0;
         for(Patch p : forestPatches)
         {
-            int x = p.x;
-            int y = p.y;
             /*
              * Check hydrology info to see if this patch is a suitable
              * candidate for cutting.  If not, skip.
@@ -393,7 +391,7 @@ public void paint(Graphics g) {
             // p.lumberProfit for comparison against other forest patch in pqueue
             p.calcValue();
             // check if the patch is suitable for lumber
-            lumCompany.queueTimberPatch(timberSuitable, x, y, p);
+            lumCompany.queueTimberPatch(timberSuitable, p);
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
