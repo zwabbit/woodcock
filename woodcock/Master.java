@@ -461,6 +461,9 @@ public class Master extends JFrame{
         
         System.out.println("Done generating forests.\n");
         
+        System.out.print("Initiating scenario ");
+        if(SCENARIO_ONE) System.out.println("1");
+        else System.out.println("2");
         while(true)
         {
             final int time = tick;
@@ -487,20 +490,22 @@ public class Master extends JFrame{
             }
             
             PriorityQueue<Patch> conCuts = conservGroup.optimizeCuts();
-            double conValue;
+            double totalCutValue;
             
             if(SCENARIO_ONE)
             {
-                conValue = lumCompany.ClearCutConservation(conCuts);
+                totalCutValue = lumCompany.ClearCutConservation(conCuts);
             }
             else
             {
+                double conValue = lumCompany.CalcProfit(conCuts);
+                System.err.println("Conservation cut value: " + conValue);
                 PriorityQueue<Patch> actualCuts = new PriorityQueue<>();
                 lumCompany.ConservationHarvested(conCuts, actualCuts);
-                conValue = lumCompany.ClearCutConservation(actualCuts);
+                totalCutValue = lumCompany.ClearCutConservation(actualCuts);
             }
             
-            System.out.println("Total value from harvested patches: " + conValue);
+            System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);
             ++tick;
         }
     }
