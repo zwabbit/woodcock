@@ -178,7 +178,7 @@ public class LumberCompany {
             }
         }
         
-        if(canClone.size() > 0)
+        while(canClone.size() > 0)
         {
             Patch conCan = canClone.remove();
             if(alreadyPopped.get(conCan.key) != null)
