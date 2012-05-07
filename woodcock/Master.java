@@ -500,6 +500,7 @@ public void paint(Graphics g) {
             {
                 PriorityQueue<Patch> actualCuts = new PriorityQueue<>();
                 lumCompany.ConservationHarvested(conCuts, actualCuts);
+                conValue = lumCompany.ClearCutConservation(actualCuts);
             }
             
             System.out.println("Total value from harvested patches: " + conValue);
