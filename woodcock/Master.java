@@ -30,10 +30,8 @@ public class Master extends JFrame{
     }
 	  
     @Override
-public void paint(Graphics g) {
-        int i = 0;
-        while (i < forestPatches.size()) {
-            Patch p = forestPatches.get(i);
+    public void paint(Graphics g) {
+        for (Patch p : forestPatches) {
             Master.color = p.age;
             Master.x = p.x;
             Master.y = p.y;
@@ -50,7 +48,6 @@ public void paint(Graphics g) {
             g1.fillRect(10 + x, 32 + y, 1, 1);
             validate();
             repaint();
-            i++;
         }
     }
 	
