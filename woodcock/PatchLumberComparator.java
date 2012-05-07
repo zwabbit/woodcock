@@ -7,9 +7,9 @@ import java.util.Comparator;
 public class PatchLumberComparator implements Comparator<Patch> {
 	@Override
 	public int compare(Patch p1, Patch p2) {
-		if (p1.lumberProfit > p2.lumberProfit)
+		if (p1.lumberProfit < p2.lumberProfit)
 			return 1;
-		else if (p1.lumberProfit < p2.lumberProfit) {
+		else if (p1.lumberProfit > p2.lumberProfit) {
 			return -1;
 		}
 		return 0;

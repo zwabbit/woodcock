@@ -373,8 +373,8 @@ public void paint(Graphics g) {
         
         final Master sp = new Master();
         sp.setVisible(true);
-        sp.setSize(1322, 1000);
-        sp.setLocation(20, 20);
+        sp.setSize(1422, 1000);
+        sp.setLocation(0, 0);
         sp.setResizable(false);
         final ArrayList<Patch> finalForests = forestPatches;
         
@@ -435,7 +435,20 @@ public void paint(Graphics g) {
         PriorityQueue<Patch> conserPQueue = conservGroup.getPQueue();
         System.out.println("lumberPQueue size : " + lumberPQueue.size());
         System.out.println("conserPQueue : " + conserPQueue.size());
-        
+        int i = 0;
+        int j = 0;
+        while (i < 10){
+            Patch p = new Patch(i, i);
+            p.lumberProfit = j;
+            lumberPQueue.add(p);
+            i++;
+            j += 10;
+        }
+
+        while (lumberPQueue.size() > 0){
+            Patch p = lumberPQueue.poll();
+            System.out.println("lumber profit: " + p.lumberProfit); 
+        }
         System.out.println("Conservation cutting candidates: " + conservGroup.habitatCandidates.size());
 
         System.out.println("forestpatches: " + forestPatches.size());  
