@@ -6,7 +6,6 @@ package woodcock;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.event.WindowAdapter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -15,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import javax.swing.JFrame;
-import javax.swing.JScrollPane;
 /**
  *
  * @author Z98
