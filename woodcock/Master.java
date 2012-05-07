@@ -489,7 +489,13 @@ public class Master extends JFrame{
                 else conservGroup.checkSuitability(forest);
             }
             
-            PriorityQueue<Patch> conCuts = conservGroup.optimizeCuts();
+            PriorityQueue<Patch> conCuts;
+            if(conservGroup.habitatCandidates.size() > 500) conCuts = conservGroup.optimizeCuts();
+            else
+            {
+                conCuts = conservGroup.habitatCandidates;
+                System.err.println("Less than 500 cutting candidates found this timestep: " + conCuts.size());
+            }
             double totalCutValue;
             
             if(SCENARIO_ONE)
