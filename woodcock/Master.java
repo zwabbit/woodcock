@@ -487,7 +487,7 @@ public class Master extends JFrame{
             }
             
             PriorityQueue<Patch> conCuts = conservGroup.optimizeCuts();
-            double conValue = 0;
+            double conValue;
             
             if(SCENARIO_ONE)
             {
