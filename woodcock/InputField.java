@@ -10,13 +10,14 @@ package woodcock;
  */
 public class InputField extends javax.swing.JFrame {
 public static int num1, num2, result;
-public static boolean clicked;
+public static boolean clicked, step;
     /**
      * Creates new form InputField
      */
     public InputField() {
         initComponents();
         clicked = false;
+        step = false;
     }
 
     /**
@@ -128,18 +129,25 @@ public static boolean clicked;
             }
         });
 
-        button1.setEnabled(false);
         button1.setLabel("Go");
         button1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 button1MouseClicked(evt);
             }
         });
+        button1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button1ActionPerformed(evt);
+            }
+        });
 
-        button4.setActionCommand("");
-        button4.setEnabled(false);
         button4.setLabel("Step");
         button4.setName("");
+        button4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                button4MouseClicked(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -212,6 +220,14 @@ public static boolean clicked;
             clicked = true;
         }
     }//GEN-LAST:event_button1MouseClicked
+
+    private void button1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_button1ActionPerformed
+
+    private void button4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_button4MouseClicked
+        step = true;
+    }//GEN-LAST:event_button4MouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private java.awt.Button ADD;

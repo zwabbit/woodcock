@@ -175,20 +175,21 @@
     </Component>
     <Component class="java.awt.Button" name="button1">
       <Properties>
-        <Property name="enabled" type="boolean" value="false"/>
         <Property name="label" type="java.lang.String" value="Go"/>
       </Properties>
       <Events>
         <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="button1MouseClicked"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="button1ActionPerformed"/>
       </Events>
     </Component>
     <Component class="java.awt.Button" name="button4">
       <Properties>
-        <Property name="actionCommand" type="java.lang.String" value=""/>
-        <Property name="enabled" type="boolean" value="false"/>
         <Property name="label" type="java.lang.String" value="Step"/>
         <Property name="name" type="java.lang.String" value=""/>
       </Properties>
+      <Events>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="button4MouseClicked"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

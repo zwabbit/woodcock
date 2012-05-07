@@ -299,6 +299,7 @@ public class WCConservation {
             return null;
         
         cutCandidates.clear();
+        cutCandidates.size();
         SolutionData bCut = parser.getSymbol("cut", SolutionData.VAR, 2);
         
         for(SolutionRow sRow : bCut.getRows())
@@ -310,7 +311,9 @@ public class WCConservation {
                 int yCoord = Integer.valueOf(sRow.getIndex(1));
                 List<Integer> key = Arrays.asList(xCoord, yCoord);
                 Patch cutPatch = candidateMap.get(key);
-                cutCandidates.add(cutPatch);
+                //if (cutPatch != null) {
+                    cutCandidates.add(cutPatch);
+                //}
             }
         }
         
