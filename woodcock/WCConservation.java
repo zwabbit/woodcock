@@ -33,7 +33,7 @@ public class WCConservation {
     
     public int rangeDevelop = 1;
     
-    public RTree candidateTree = null;
+    //public RTree candidateTree = null;
     
     public int waterDist = 1;
     int found = 0;
@@ -45,7 +45,7 @@ public class WCConservation {
         habitatCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         cutCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         candidateMap = new HashMap<>();
-        candidateTree = new RTree(4, 8);
+        //candidateTree = new RTree(4, 8);
 
         /*
         String pathEnv = System.getenv("PATH");
@@ -94,15 +94,17 @@ public class WCConservation {
             if(Master.DEBUG_FLAG) System.err.println("Too far from young forest.");
             return false;
         }
+        /*
         if(Calculation.rangeQuery(candidateTree, x, y, 1) != null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too close to other candidate.");
             return false;
         }
+        */
 
         habitatCandidates.add(p);
         candidateMap.put(p.key, p);
-        candidateTree.insert(p.box);
+        //candidateTree.insert(p.box);
         
         return true;
     }
@@ -146,6 +148,7 @@ public class WCConservation {
                 ++water;
                 continue;
             }
+            /*
             if (Calculation.rangeQuery(candidateTree, forest.x, forest.y, 1) != null) {
                 if (Master.DEBUG_FLAG) {
                     System.err.println("Too close to other candidate.");
@@ -153,10 +156,10 @@ public class WCConservation {
                 ++candidate;
                 continue;
             }
-            
+            */
             //habitatCandidates.add(forest);
             candidateMap.put(forest.key, forest);
-            candidateTree.insert(forest.box);
+            //candidateTree.insert(forest.box);
             forest.ClearCut();
             ++found;
             if(found >= required)

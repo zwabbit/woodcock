@@ -442,7 +442,7 @@ public class Master extends JFrame {
                 // changing the step button value to false
                 InputField.step = false;
                 final int time = tick;
-                conservGroup.candidateTree = new RTree(4, 8);
+                //conservGroup.candidateTree = new RTree(4, 8);
                 Parallel.withIndex(0, forestPatches.size() - 1, new Parallel.Each() {
 
                     @Override
@@ -460,7 +460,7 @@ public class Master extends JFrame {
                 youngForests = new RTree(4, 8);
                 conservGroup.candidateMap.clear();
                 conservGroup.habitatCandidates.clear();
-                conservGroup.candidateTree = new RTree(4, 8);
+                //conservGroup.candidateTree = new RTree(4, 8);
                 
                 for(Patch p : finalForests)
                 {
