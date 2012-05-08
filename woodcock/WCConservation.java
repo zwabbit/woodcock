@@ -320,7 +320,6 @@ public class WCConservation {
             return null;
         
         cutCandidates.clear();
-        cutCandidates.size();
         SolutionData bCut = parser.getSymbol("cut", SolutionData.VAR, 2);
         
         for(SolutionRow sRow : bCut.getRows())

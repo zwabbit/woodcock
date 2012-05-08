@@ -216,16 +216,28 @@ public static boolean clicked, step, add;
     }//GEN-LAST:event_jTextField3ActionPerformed
 
     private void button1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_button1MouseClicked
+        /*
         if(clicked == true) {
             clicked = false;
         } 
         else {
             clicked = true;
         }
+        *
+        */
     }//GEN-LAST:event_button1MouseClicked
 
     private void button1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button1ActionPerformed
-        // TODO add your handling code here:
+        if(clicked == false)
+        {
+            clicked = true;
+            synchronized(this){
+            this.notifyAll();}
+        }
+        else
+        {
+            clicked = false;
+        }
     }//GEN-LAST:event_button1ActionPerformed
 
     private void button4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_button4MouseClicked

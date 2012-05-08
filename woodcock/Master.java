@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 /**
@@ -427,6 +429,12 @@ public class Master extends JFrame {
         while (true) {
             // clicked means go; step means just step through once
             // go can be stopped by clicking go again the next time 
+            if(InputField.clicked == false && InputField.step == false)
+                try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                //Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+            }
             while (InputField.clicked == true || InputField.step == true) {
                 // for checking purpose
                 //System.out.println("entered");
@@ -465,10 +473,17 @@ public class Master extends JFrame {
                     System.err.println("Error: failed to locate enough patches to cut.");
                     System.err.println("Current size: " + habitatCandidates.size());
                 }
+                
+                System.out.println("Habitat candidates: " + conservGroup.habitatCandidates.size());
 
                 PriorityQueue<Patch> conCuts;
                 if (conservGroup.habitatCandidates.size() > 500) {
                     conCuts = conservGroup.optimizeCuts();
+                    if(conCuts == null)
+                    {
+                        System.err.println("Attempt to optimize failed.");
+                        System.exit(-1);
+                    }
                 } else {
                     conCuts = conservGroup.habitatCandidates;
                     System.err.println("Less than 501 cutting candidates found this timestep: " + conCuts.size());
@@ -488,8 +503,6 @@ public class Master extends JFrame {
                 System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);
                 ++tick;
             }
-            // added print to make sure the code try the while loop everytime
-            System.out.println("");
         }
     }
 }
