@@ -55,6 +55,22 @@ public class WCConservation {
         }
         */
     }
+    
+    public PriorityQueue<Patch> CheckForestSuitability(ArrayList<Patch> forest)
+    {
+        for(Patch p : forest)
+        {
+            checkSuitability(p);
+        }
+        
+        if(habitatCandidates.size() < 500)
+        {
+            waterDist *= 10;
+            System.err.println("Water distance increased to: " + waterDist);
+        }
+        
+        return habitatCandidates;
+    }
 
     // get the suitable patch for woodcock habitat
     // still have to check against water patch and forest area
@@ -271,7 +287,12 @@ public class WCConservation {
             NeosJobXml jobXml = new NeosJobXml("milp", "XpressMP", "GAMS");
             jobXml.addParam("model", modelContent.toString());
             jobXml.addParam("email", "ziliang@cs.wisc.edu");
-            NeosJob neosJob = neosClient.submitJob(jobXml.toXMLString());
+            NeosJob neosJob;
+            while((neosJob = neosClient.submitJob(jobXml.toXMLString())) == null)
+            {
+                System.err.println("Error: failed to submit job to NEOS.");
+            }
+            
             System.out.println("Job ID: " + neosJob.getJobNo());
             System.out.println("Job password: " + neosJob.getJobPass());
             results = neosJob.getResult();

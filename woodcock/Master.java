@@ -452,14 +452,18 @@ public class Master extends JFrame {
                 youngForests = new RTree(4, 8);
                 conservGroup.candidateMap.clear();
                 conservGroup.habitatCandidates.clear();
-                for (Patch forest : forestPatches) {
-                    if (forest.age < 10) {
-                        youngForests.insert(forest.box);
-                    }
+                conservGroup.candidateTree = new RTree(4, 8);
+                
+                for(Patch p : finalForests)
+                {
+                    if(p.age < 10) youngForests.insert(p.box);
                 }
 
-                for (Patch forest : forestPatches) {
-                    conservGroup.checkSuitability(forest);
+                PriorityQueue<Patch> habitatCandidates;
+                while((habitatCandidates = conservGroup.CheckForestSuitability(finalForests)).size() < 500)
+                {
+                    System.err.println("Error: failed to locate enough patches to cut.");
+                    System.err.println("Current size: " + habitatCandidates.size());
                 }
 
                 PriorityQueue<Patch> conCuts;
@@ -467,7 +471,7 @@ public class Master extends JFrame {
                     conCuts = conservGroup.optimizeCuts();
                 } else {
                     conCuts = conservGroup.habitatCandidates;
-                    System.err.println("Less than 500 cutting candidates found this timestep: " + conCuts.size());
+                    System.err.println("Less than 501 cutting candidates found this timestep: " + conCuts.size());
                 }
                 double totalCutValue;
 
@@ -485,7 +489,7 @@ public class Master extends JFrame {
                 ++tick;
             }
             // added print to make sure the code try the while loop everytime
-            System.out.print("");
+            System.out.println("");
         }
     }
 }

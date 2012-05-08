@@ -300,6 +300,8 @@ public class Patch{
         for(int index = 0; index < 12; index++)
             trees[index] = 0;
         
+        age = 0;
+        
         return lumberProfit;
     }
 }
