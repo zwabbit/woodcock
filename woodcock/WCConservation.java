@@ -65,7 +65,7 @@ public class WCConservation {
         
         if(habitatCandidates.size() < 500)
         {
-            waterDist *= 10;
+            waterDist += 10;
             System.err.println("Water distance increased to: " + waterDist);
         }
         
@@ -191,8 +191,13 @@ public class WCConservation {
 
             org.neos.gams.Set xSet = new org.neos.gams.Set("x", "X coordinates");
             org.neos.gams.Set ySet = new org.neos.gams.Set("y", "X coordinates");
-            gSets.add(xSet);
-            gSets.add(ySet);
+            org.neos.gams.Set xSubSet = new org.neos.gams.Set("xSub", "X coordinates");
+            org.neos.gams.Set ySubSet = new org.neos.gams.Set("ySub", "X coordinates");
+            
+            xSet.addValue("0*" + String.valueOf(Master.columns - 1));
+            ySet.addValue("0*" + String.valueOf(Master.rows - 1));
+            gSets.add(xSubSet);
+            gSets.add(ySubSet);
             Parameter value = new Parameter("patchValue(x,y)", "Patch values");
             Parameter isCandidate = new Parameter("isCandidate(x,y)", "Is a candidate");
             Scalar minVal =
@@ -237,17 +242,19 @@ public class WCConservation {
             });*/
             for(Integer itgr : xOrdered)
             {
-                xSet.addValue(String.valueOf(itgr));
+                xSubSet.addValue(String.valueOf(itgr));
             }
             
             for(Integer itgr : yOrdered)
             {
-                ySet.addValue(String.valueOf(itgr));
+                ySubSet.addValue(String.valueOf(itgr));
             }
 
             modelContent.append("$offdigit").append("\n");
             modelContent.append(xSet.toString()).append("\n");
             modelContent.append(ySet.toString()).append("\n");
+            modelContent.append(xSubSet.toString()).append("\n");
+            modelContent.append(ySubSet.toString()).append("\n");
             modelContent.append(value.toString()).append("\n");
             //modelContent.append(isCandidate.toString()).append("\n");
             modelContent.append(minVal.toString()).append("\n");
