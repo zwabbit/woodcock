@@ -149,6 +149,11 @@ public static boolean clicked, step, add;
                 button4MouseClicked(evt);
             }
         });
+        button4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -241,8 +246,18 @@ public static boolean clicked, step, add;
     }//GEN-LAST:event_button1ActionPerformed
 
     private void button4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_button4MouseClicked
-        step = true;
+        //step = true;
     }//GEN-LAST:event_button4MouseClicked
+
+    private void button4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button4ActionPerformed
+        // TODO add your handling code here:
+        if (step == false && clicked == false) {
+            step = true;
+            synchronized (this) {
+                this.notifyAll();
+            }
+        }
+    }//GEN-LAST:event_button4ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private java.awt.Button ADD;
