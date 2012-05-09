@@ -20,33 +20,38 @@ public class LumberCompany {
     private PriorityQueue<Patch> lumberCandidates;
     public HashMap<List<Integer>, Patch> candidateMap;
     
-    public int harvestLimit = 750;
+    public int harvestLimit = 900;
     
     public double requiredMin = MIN_VALUE;
     
-    public double harvestQuota = WCConservation.requiredHabitats * MIN_VALUE;
+    public double harvestQuota = (750- WCConservation.requiredHabitats) * MIN_VALUE;
 
     public LumberCompany(int forestPatchSize) {
         Comparator<Patch> comparator = new PatchLumberComparator();
         lumberCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         candidateMap = new HashMap<>();
     }
+    
+    public void ClearTimberList()
+    {
+        lumberCandidates.clear();
+    }
 
     // check within the range 1000 for suitable landing area. 
     // assume that the shipping cost is a direct approximation to the distance travelled
-    public void queueTimberPatch(RTree timberSuitable, Patch p) {
+    public void queueTimberPatch(Patch p) {
         //int rangeLanding = 100;
         //while (rangeLanding < 1000) {
             //if (Calculation.rangeQuery(timberSuitable, x, y, rangeLanding) != null) {
               //  p.lumberProfit -= rangeLanding;
-                if (p.lumberProfit > MIN_VALUE) {
+                //if (p.lumberProfit > MIN_VALUE) {
                     lumberCandidates.add(p);
                     List<Integer> key = Arrays.asList(p.x, p.y);
                     candidateMap.put(key, p);
                 //}
             //}
            // rangeLanding += 100;
-        }
+        //}
     }
 
     public boolean isCandidate(Patch p) {
@@ -93,8 +98,8 @@ public class LumberCompany {
             return candidates.size();
         }
         
-        PriorityQueue<Patch> canClone = new PriorityQueue<>(candidates);
-        PriorityQueue<Patch> lumClone = new PriorityQueue<>(lumberCandidates);
+        PriorityQueue<Patch> canClone = new PriorityQueue<>(candidates);        //Conservation candidates
+        PriorityQueue<Patch> lumClone = new PriorityQueue<>(lumberCandidates);  //Preferred lumber candidates
         
         int cut = 0;
         
@@ -107,6 +112,8 @@ public class LumberCompany {
             Patch lCan = lumClone.peek();
             if(conCan == null)
             {
+                if(currentValue >= harvestQuota)
+                    break;
                 if(lCan == null) break;
                 
                 lCan = lumClone.remove();
@@ -183,6 +190,12 @@ public class LumberCompany {
             Patch conCan = canClone.remove();
             if(alreadyPopped.get(conCan.key) != null)
                 ++cutCon;
+        }
+        
+        System.out.println("Conservation cuts actually selected: " + cutCon);
+        if(currentValue < harvestQuota)
+        {
+            System.err.println("Harvest quota not met. Current value: " + currentValue + " Desired value: " + harvestQuota);
         }
         
         return cutCon;

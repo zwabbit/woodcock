@@ -341,7 +341,7 @@ public class Master extends JFrame {
             // p.lumberProfit for comparison against other forest patch in pqueue
             p.calcValue();
             // check if the patch is suitable for lumber
-            lumCompany.queueTimberPatch(timberSuitable, p);
+            lumCompany.queueTimberPatch(p);
             // check if the forest patch is near to any lumber gathering area
             // also, check if water patch(or patch with suitable water concentration) 
             // is within the range of 1; unit distance is in acre
@@ -380,20 +380,6 @@ public class Master extends JFrame {
         PriorityQueue<Patch> conserPQueue = conservGroup.getPQueue();
         System.out.println("lumberPQueue size : " + lumberPQueue.size());
         System.out.println("conserPQueue : " + conserPQueue.size());
-        int i = 0;
-        int j = 0;
-        while (i < 10) {
-            Patch p = new Patch(i, i);
-            p.lumberProfit = j;
-            lumberPQueue.add(p);
-            i++;
-            j += 10;
-        }
-
-        while (lumberPQueue.size() > 0) {
-            Patch p = lumberPQueue.poll();
-            System.out.println("lumber profit: " + p.lumberProfit);
-        }
         System.out.println("Conservation cutting candidates: " + conservGroup.habitatCandidates.size());
 
         System.out.println("forestpatches: " + forestPatches.size());
@@ -468,11 +454,14 @@ public class Master extends JFrame {
                 }
 
                 PriorityQueue<Patch> habitatCandidates;
+                conservGroup.closeToWater = 0;
                 while((habitatCandidates = conservGroup.CheckForestSuitability(finalForests)).size() < 500)
                 {
                     System.err.println("Error: failed to locate enough patches to cut.");
                     System.err.println("Current size: " + habitatCandidates.size());
                 }
+                
+                System.out.println("Forests \"close\" to water: " + conservGroup.closeToWater);
                 
                 System.out.println("Habitat candidates: " + conservGroup.habitatCandidates.size());
 
@@ -484,6 +473,7 @@ public class Master extends JFrame {
                         System.err.println("Attempt to optimize failed.");
                         System.exit(-1);
                     }
+                    System.out.println("Number of conservation cut candidates: " + conCuts.size());
                 } else {
                     conCuts = conservGroup.habitatCandidates;
                     System.err.println("Less than 501 cutting candidates found this timestep: " + conCuts.size());
@@ -493,15 +483,23 @@ public class Master extends JFrame {
                 if (SCENARIO_ONE) {
                     totalCutValue = lumCompany.ClearCut(conCuts);
                 } else {
+                    lumCompany.ClearTimberList();
+                    for(Patch fPatch : forestPatches)
+                    {
+                        lumCompany.queueTimberPatch(fPatch);
+                    }
                     double conValue = lumCompany.CalcProfit(conCuts);
-                    System.err.println("Conservation cut value: " + conValue);
-                    PriorityQueue<Patch> actualCuts = new PriorityQueue<>();
+                    System.out.println("Conservation cut value: " + conValue);
+                    PriorityQueue<Patch> actualCuts = new PriorityQueue<>(lumCompany.harvestLimit, Calculation.pLComparator);
                     lumCompany.ConservationHarvested(conCuts, actualCuts);
                     totalCutValue = lumCompany.ClearCut(actualCuts);
+                    System.out.println("Actual patches cut: " + actualCuts.size());
                 }
 
                 System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);
+                System.out.println();
                 ++tick;
+                System.gc();
             }
         }
     }

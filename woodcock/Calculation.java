@@ -11,7 +11,7 @@ import java.util.Random;
  * @author Z98
  */
 public class Calculation {
-    public static final String NEOS_HOST = "neos-server.org";
+    public static final String NEOS_HOST = "neos-dev1.discovery.wisc.edu";
     public static final String NEOS_PORT = "3332";
     
     public static final String inputTemplatePath = System.getProperty("user.dir") + "\\INPUT.gms";
@@ -58,6 +58,8 @@ public class Calculation {
     public static WeightedRandom<Integer> lessConDefRand = new WeightedRandom<>();
     public static WeightedRandom<Integer> lessDecDefRand = new WeightedRandom<>();
     public static WeightedRandom<Integer> lessMixDefRand = new WeightedRandom<>();
+    
+    public static PatchLumberComparator pLComparator = new PatchLumberComparator();
     
     public static double[] baAge = {
         0,

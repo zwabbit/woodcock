@@ -29,6 +29,8 @@ public class WCConservation {
     public HashMap<List<Integer>, Patch> candidateMap;
     public static final int requiredHabitats = 500;
     
+    public HashMap<List<Integer>, Integer> selectFreq;
+    
     public PriorityQueue<Patch> cutCandidates;
     
     public int rangeDevelop = 1;
@@ -38,13 +40,34 @@ public class WCConservation {
     public int waterDist = 1;
     int found = 0;
     
+    public int closeToWater = 0;
+    
     Comparator<Patch> comparator = null;
+    
+    private StringBuilder modelTemplate;
 
     public WCConservation(int forestPatchSize) {
         comparator = new PatchLumberComparator();
         habitatCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         cutCandidates = new PriorityQueue<>(forestPatchSize, comparator);
         candidateMap = new HashMap<>();
+        selectFreq = new HashMap<>();
+        modelTemplate = new StringBuilder(); 
+        
+        Scanner scanner; 
+        try {
+            scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePath),
+                    "US-ASCII");
+            while (scanner.hasNextLine()) {
+                modelTemplate.append(scanner.nextLine()).append("\n");
+            }
+        } catch (FileNotFoundException ex) {
+            //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("FATAL: Failed to read in model file.");
+            System.exit(-1);
+        }
+            
+        
         //candidateTree = new RTree(4, 8);
 
         /*
@@ -77,6 +100,11 @@ public class WCConservation {
     public boolean checkSuitability(Patch p) {
         int x = p.x;
         int y = p.y;
+        
+        if(candidateMap.get(p.key) != null)
+        {
+            return false;
+        }
         /*
         if (Calculation.rangeQuery(Master.developedArea, x, y, rangeDevelop) != null)
         {
@@ -89,6 +117,7 @@ public class WCConservation {
             if(Master.DEBUG_FLAG) System.err.println("Too far from wet area.");
             return false;
         }
+        ++closeToWater;
         if(Calculation.rangeQuery(Master.youngForests, x, y, 1) == null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too far from young forest.");
@@ -191,8 +220,8 @@ public class WCConservation {
 
             org.neos.gams.Set xSet = new org.neos.gams.Set("x", "X coordinates");
             org.neos.gams.Set ySet = new org.neos.gams.Set("y", "X coordinates");
-            org.neos.gams.Set xSubSet = new org.neos.gams.Set("xSub", "X coordinates");
-            org.neos.gams.Set ySubSet = new org.neos.gams.Set("ySub", "X coordinates");
+            org.neos.gams.Set xSubSet = new org.neos.gams.Set("xSub(x)", "X coordinates");
+            org.neos.gams.Set ySubSet = new org.neos.gams.Set("ySub(y)", "X coordinates");
             
             xSet.addValue("0*" + String.valueOf(Master.columns - 1));
             ySet.addValue("0*" + String.valueOf(Master.rows - 1));
@@ -240,14 +269,14 @@ public class WCConservation {
                     }
                 }
             });*/
-            for(Integer itgr : xOrdered)
+            while(xOrdered.size() > 0)
             {
-                xSubSet.addValue(String.valueOf(itgr));
+                xSubSet.addValue(String.valueOf(xOrdered.remove()));
             }
             
-            for(Integer itgr : yOrdered)
+            while(yOrdered.size() > 0)
             {
-                ySubSet.addValue(String.valueOf(itgr));
+                ySubSet.addValue(String.valueOf(yOrdered.remove()));
             }
 
             modelContent.append("$offdigit").append("\n");
@@ -260,17 +289,15 @@ public class WCConservation {
             modelContent.append(minVal.toString()).append("\n");
             modelContent.append(required.toString()).append("\n");
 
-            try (Scanner scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePath),
-                            "US-ASCII")) {
-                while (scanner.hasNextLine()) {
-                    modelContent.append(scanner.nextLine()).append("\n");
+            modelContent.append(modelTemplate);
+            
+            if(Master.DEBUG_FLAG)
+            {
+                try (FileWriter modelFile = new FileWriter(Calculation.outputModelPath)) {
+                    modelFile.write(modelContent.toString());
                 }
             }
-            /*
-            try (FileWriter modelFile = new FileWriter(Calculation.outputModelPath)) {
-                modelFile.write(modelContent.toString());
-            }
-            */
+            
             if (hasGams) {
                 ProcessBuilder pBuilder = new ProcessBuilder("gams");
                 Process gamsProcess = pBuilder.start();
@@ -326,7 +353,7 @@ public class WCConservation {
         }
         
         SolutionParser parser = new SolutionParser(results);
-        if(parser.getModelStatusCode() != 1)
+        if(parser.getModelStatusCode() != 8 && parser.getModelStatusCode() != 1)
             return null;
         
         cutCandidates.clear();
@@ -343,9 +370,22 @@ public class WCConservation {
                 Patch cutPatch = candidateMap.get(key);
                 if (cutPatch != null) {
                     cutCandidates.add(cutPatch);
+                    Integer sValue = selectFreq.get(key);
+                    if(sValue != null)
+                        selectFreq.put(key, sValue + 1);
+                    else
+                        selectFreq.put(key, 1);
                 }
             }
         }
+        
+        int uniqeCount = 0;
+        for(Integer sFreq : selectFreq.values())
+        {
+            if(sFreq == 1) ++uniqeCount;
+        }
+        
+        System.out.println("Current number of uniquely selected patches: " + uniqeCount);
         
         double totalCost = parser.getObjective();
         
