@@ -14,9 +14,9 @@ public class Calculation {
     public static final String NEOS_HOST = "neos-dev1.discovery.wisc.edu";
     public static final String NEOS_PORT = "3332";
     
-    public static final String inputTemplatePath = System.getProperty("user.dir") + "\\INPUT.gms";
-    public static final String outputModelPath = System.getProperty("user.dir") + "\\MODEL.gms";
-    public static final String outputSolPath = System.getProperty("user.dir") + "\\MODEL.lst";
+    public static final String inputTemplatePath = System.getProperty("user.dir") + "\\src\\INPUT.gms";
+    public static final String outputModelPath = System.getProperty("user.dir") + "\\src\\MODEL.gms";
+    public static final String outputSolPath = System.getProperty("user.dir") + "\\src\\MODEL.lst";
     
     public static double conDefaultTreeWeight[] = {0.185236008, 0.258728096, 0.556035896};
     public static double decDefaultTreeWeight[] = {0.2, 0.37, 0.43};
