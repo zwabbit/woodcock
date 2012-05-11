@@ -23,7 +23,14 @@ public class Master extends JFrame {
 
     public static int x, y, color;
     public static boolean DEBUG_FLAG = false;
-    public static boolean SCENARIO_ONE = true;
+    
+    public enum SCENARIOS {
+        S1, //Unlimited conservation resource, all cuts directed by conservation needs.
+        S2, //Lumber interests cut based on profit margin and harvest ability limitations.
+        S3  //Conservation groups first checks whether lumber interest will automatically create habitats without intervention.
+    };
+    
+    public static SCENARIOS currentScenario = SCENARIOS.S1;
     // Function to draw patches of forest, the color changes according to age, older forest has lighter color
 
     public Master() {
@@ -78,6 +85,8 @@ public class Master extends JFrame {
         Path coverPath = Paths.get("cdl2011.txt");
         Path landPath = Paths.get("landingsuitability.txt");
         HashMap<List<Integer>, Patch> patches = new HashMap<>(); // update every year
+        
+        Thread mainThread = Thread.currentThread();
 
         forestPatches = new ArrayList<>();
         LinkedList<Patch> grassPatches = new LinkedList<>();
@@ -405,19 +414,31 @@ public class Master extends JFrame {
         System.out.println("Done generating forests.\n");
 
         System.out.print("Initiating scenario ");
-        if (SCENARIO_ONE) {
-            System.out.println("1");
-        } else {
-            System.out.println("2");
+        switch(currentScenario)
+        {
+            case S1:
+                System.out.println("1");
+                break;
+            case S2:
+                System.out.println("2");
+            case S3:
+                System.out.println("3");
         }
+        System.out.println();
+        
         while (true) {
             // clicked means go; step means just step through once
             // go can be stopped by clicking go again the next time 
             if(InputField.clicked == false && InputField.step == false)
+            {
                 try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                //Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                    synchronized (mainThread) {
+                        mainThread.wait();
+                    }
+                } catch (InterruptedException ex) {
+                    //Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                    continue;
+                }
             }
             while (InputField.clicked == true || InputField.step == true) {
                 // for checking purpose
@@ -448,12 +469,12 @@ public class Master extends JFrame {
                 
                 for(Patch p : finalForests)
                 {
-                    if(p.age < 10) youngForests.insert(p.box);
+                    if(p.age < 15) youngForests.insert(p.box);
                 }
 
                 PriorityQueue<Patch> habitatCandidates;
                 conservGroup.closeToWater = 0;
-                while((habitatCandidates = conservGroup.CheckForestSuitability(finalForests)).size() < 500)
+                while((habitatCandidates = conservGroup.CheckForestSuitability(finalForests)).size() < WCConservation.requiredHabitats)
                 {
                     System.err.println("Error: failed to locate enough patches to cut.");
                     System.err.println("Current size: " + habitatCandidates.size());
@@ -464,7 +485,7 @@ public class Master extends JFrame {
                 System.out.println("Habitat candidates: " + conservGroup.habitatCandidates.size());
 
                 PriorityQueue<Patch> conCuts;
-                if (conservGroup.habitatCandidates.size() > 500) {
+                if (conservGroup.habitatCandidates.size() > WCConservation.requiredHabitats) {
                     conCuts = conservGroup.optimizeCuts();
                     if(conCuts == null)
                     {
@@ -474,24 +495,29 @@ public class Master extends JFrame {
                     System.out.println("Number of conservation cut candidates: " + conCuts.size());
                 } else {
                     conCuts = conservGroup.habitatCandidates;
-                    System.err.println("Less than 501 cutting candidates found this timestep: " + conCuts.size());
+                    System.err.println("Less than 41 cutting candidates found this timestep: " + conCuts.size());
                 }
-                double totalCutValue;
-
-                if (SCENARIO_ONE) {
-                    totalCutValue = lumCompany.ClearCut(conCuts);
-                } else {
-                    lumCompany.ClearTimberList();
-                    for(Patch fPatch : forestPatches)
-                    {
-                        lumCompany.queueTimberPatch(fPatch);
-                    }
-                    double conValue = lumCompany.CalcProfit(conCuts);
-                    System.out.println("Conservation cut value: " + conValue);
-                    PriorityQueue<Patch> actualCuts = new PriorityQueue<>(lumCompany.harvestLimit, Calculation.pLComparator);
-                    lumCompany.ConservationHarvested(conCuts, actualCuts);
-                    totalCutValue = lumCompany.ClearCut(actualCuts);
-                    System.out.println("Actual patches cut: " + actualCuts.size());
+                double totalCutValue = 0;
+                
+                switch(currentScenario)
+                {
+                    case S1:
+                        totalCutValue = lumCompany.ClearCut(conCuts);
+                        break;
+                    case S2:
+                        lumCompany.ClearTimberList();
+                        for (Patch fPatch : forestPatches) {
+                            lumCompany.queueTimberPatch(fPatch);
+                        }
+                        double conValue = lumCompany.CalcProfit(conCuts);
+                        System.out.println("Conservation cut value: " + conValue);
+                        PriorityQueue<Patch> actualCuts = new PriorityQueue<>(lumCompany.harvestLimit, Calculation.pLComparator);
+                        lumCompany.ConservationHarvested(conCuts, actualCuts);
+                        totalCutValue = lumCompany.ClearCut(actualCuts);
+                        System.out.println("Actual patches cut: " + actualCuts.size());
+                        break;
+                    case S3:
+                        break;
                 }
 
                 System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);

@@ -27,7 +27,7 @@ public class WCConservation {
     boolean hasGams = false;
     public PriorityQueue<Patch> habitatCandidates;
     public HashMap<List<Integer>, Patch> candidateMap;
-    public static final int requiredHabitats = 500;
+    public static final int requiredHabitats = 40;
     
     public HashMap<List<Integer>, Integer> selectFreq;
     
@@ -37,7 +37,7 @@ public class WCConservation {
     
     //public RTree candidateTree = null;
     
-    public int waterDist = 1;
+    public int waterDist = 25;
     int found = 0;
     
     public int closeToWater = 0;
@@ -88,7 +88,7 @@ public class WCConservation {
         
         if(habitatCandidates.size() < 500)
         {
-            waterDist += 10;
+            waterDist += 25;
             System.err.println("Water distance increased to: " + waterDist);
         }
         
@@ -198,7 +198,7 @@ public class WCConservation {
         System.err.println("Failed due to distance from developed land: " + dev);
         System.err.println("Failed due to distance from water: " + water);
         System.err.println("Failed due to distance from existing candidate: " + candidate);
-        waterDist *= 10;
+        waterDist += 25;
         return false;
     }
 
