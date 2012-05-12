@@ -5,6 +5,7 @@
 package woodcock;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -14,9 +15,12 @@ public class Calculation {
     public static final String NEOS_HOST = "neos-dev1.discovery.wisc.edu";
     public static final String NEOS_PORT = "3332";
     
-    public static final String inputTemplatePath = System.getProperty("user.dir") + "\\src\\INPUT.gms";
-    public static final String outputModelPath = System.getProperty("user.dir") + "\\src\\MODEL.gms";
-    public static final String outputSolPath = System.getProperty("user.dir") + "\\src\\MODEL.lst";
+    public static final String inputTemplatePath = System.getProperty("user.dir") + "/src/INPUT.gms";
+    public static final String outputModelPath = System.getProperty("user.dir") + "/src/MODEL.gms";
+    public static final String outputSolPath = System.getProperty("user.dir") + "/src/MODEL.lst";
+    
+    public static final String inputTemplatePathS4 = System.getProperty("user.dir") + "/src/INPUT3.gms";
+    public static final String outputModelPathS4 = System.getProperty("user.dir") + "/src/MODEL3.gms";
     
     public static double conDefaultTreeWeight[] = {0.185236008, 0.258728096, 0.556035896};
     public static double decDefaultTreeWeight[] = {0.2, 0.37, 0.43};
@@ -60,6 +64,8 @@ public class Calculation {
     public static WeightedRandom<Integer> lessMixDefRand = new WeightedRandom<>();
     
     public static PatchLumberComparator pLComparator = new PatchLumberComparator();
+    
+    public static AtomicInteger patchIDGenerator = new AtomicInteger();
     
     public static double[] baAge = {
         0,

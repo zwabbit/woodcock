@@ -20,6 +20,7 @@ public class Patch{
     public double lumberProfit;
     public AABB box = null;
     public List<Integer> key = null;
+    public int patchID;
     
     double[][] growthMatrix = null;
     double ingrowthMatrix;
@@ -44,6 +45,7 @@ public class Patch{
         this.waterDepth = waterDepth;
         this.soil = soil;
         this.canopy = canopy;
+        this.patchID = Calculation.patchIDGenerator.getAndIncrement();
     }
     
     public void generateTrees()

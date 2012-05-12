@@ -45,6 +45,7 @@ public class WCConservation {
     Comparator<Patch> comparator = null;
     
     private StringBuilder modelTemplate;
+    private StringBuilder modelTemplateS4;
 
     public WCConservation(int forestPatchSize) {
         comparator = new PatchLumberComparator();
@@ -61,6 +62,10 @@ public class WCConservation {
             while (scanner.hasNextLine()) {
                 modelTemplate.append(scanner.nextLine()).append("\n");
             }
+                
+            scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePathS4), "US-ASCII");
+            while(scanner.hasNextLine())
+                modelTemplateS4.append(scanner.nextLine()).append("\n");
         } catch (FileNotFoundException ex) {
             //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("FATAL: Failed to read in model file.");
@@ -390,6 +395,76 @@ public class WCConservation {
         double totalCost = parser.getObjective();
         
         System.out.println("Total subsidy cost: " + totalCost);
+        
+        return cutCandidates;
+    }
+    
+    public PriorityQueue<Patch> OptimizeCutsScenario4()
+    {
+        String results;
+        StringBuilder modelContent = new StringBuilder();
+        HashMap<Integer, Patch> candidateIDMap = new HashMap<>();
+        org.neos.gams.Set patchSet = new org.neos.gams.Set("M", "patches");
+        org.neos.gams.Set dimSet = new org.neos.gams.Set("N", "dimensions");
+        
+        Parameter subsidy = new Parameter("subsidy", "subsidy cost");
+        
+        dimSet.addValue("0");
+        dimSet.addValue("1");
+        
+        for(Patch p : habitatCandidates)
+        {
+            String pID = String.valueOf(p.patchID);
+            patchSet.addValue(pID);
+            double subsidyCost = 250 - p.lumberProfit;
+            if(subsidyCost < 0) subsidyCost = 0;
+            subsidy.add(pID, String.valueOf(subsidyCost));
+            candidateIDMap.put(p.patchID, p);
+        }
+        
+        modelContent.append(patchSet.toString()).append("\n");
+        modelContent.append(dimSet.toString()).append("\n");
+        modelContent.append(modelTemplateS4);
+        
+        try (FileWriter modelFile = new FileWriter(Calculation.outputModelPath)) {
+            modelFile.write(modelContent.toString());
+        }
+        catch(IOException ioe)
+        {
+            
+        }
+        
+        NeosClient neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);
+        NeosJobXml jobXml = new NeosJobXml("milp", "gurobi", "GAMS");
+        jobXml.addParam("model", modelContent.toString());
+        jobXml.addParam("email", "ziliang@cs.wisc.edu");
+        NeosJob neosJob;
+        while ((neosJob = neosClient.submitJob(jobXml.toXMLString())) == null) {
+            System.err.println("Error: failed to submit job to NEOS.");
+        }
+        
+        System.out.println("Job ID: " + neosJob.getJobNo());
+        System.out.println("Job password: " + neosJob.getJobPass());
+        results = neosJob.getResult();
+        
+        SolutionParser parser = new SolutionParser(results);
+        if (parser.getModelStatusCode() != 8 && parser.getModelStatusCode() != 1) {
+            return null;
+        }
+
+        cutCandidates.clear();
+        SolutionData bCut = parser.getSymbol("selected", SolutionData.VAR, 1);
+        
+        for (SolutionRow sRow : bCut.getRows()) {
+            int level = sRow.getLevel().intValue();
+            if (level == 1) {
+                int pID = Integer.valueOf(sRow.getIndex(0));
+                Patch cutPatch = candidateIDMap.get(pID);
+                if (cutPatch != null) {
+                    cutCandidates.add(cutPatch);
+                }
+            }
+        }
         
         return cutCandidates;
     }

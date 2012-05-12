@@ -27,7 +27,9 @@ public class Master extends JFrame {
     public enum SCENARIOS {
         S1, //Unlimited conservation resource, all cuts directed by conservation needs.
         S2, //Lumber interests cut based on profit margin and harvest ability limitations.
-        S3  //Conservation groups first checks whether lumber interest will automatically create habitats without intervention.
+        S3, //Conservation groups first checks whether lumber interest will automatically create habitats without intervention.
+        S4, //More intelligent conservation selection model based on distance of patches from each other.
+        S5  //Variant of S4, samve objective but different optimization model.
     };
     
     public static SCENARIOS currentScenario = SCENARIOS.S1;
