@@ -6,6 +6,8 @@ package woodcock;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -41,11 +43,19 @@ public class Master extends JFrame {
     public Master() {
         super("Vilas County Forest Map");
         //JScrollPane jp = new JScrollPane();
-
+        vilasMap = null;
     }
+    
+    public BufferedImage vilasMap;
 
     @Override
     public void paint(Graphics g) {
+        if(vilasMap != null)
+        {
+            this.setSize(vilasMap.getHeight(), vilasMap.getWidth());
+            repaint();
+        }
+        /*
         if (colorRed == false) {
             for (Patch p : forestPatches) {
                 Master.color = p.age;
@@ -79,6 +89,7 @@ public class Master extends JFrame {
                 validate();
                 repaint();
         }
+        */
     }
     public static RTree waterDepth = null;
     public static RTree timberSuitable = null;
@@ -445,14 +456,17 @@ public class Master extends JFrame {
         int newHeight = yMax - yMin;
         int newWidth = xMax - xMin;
         System.out.println("min. x: " + xMin + "\nmin. y: " + yMin + "\nmax. x: " + xMax + "\nmax. y: " + yMax);
+        if(sp.vilasMap == null)
+        {
+            sp.vilasMap = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        }
         sp.setVisible(true);
         sp.setSize(newWidth, newHeight);
         sp.setLocation(-5, -15);
         sp.setResizable(true);
         for(Patch p : conservGroup.habitatMap.values())
         {
-            Master.x = p.x - xMin;
-            Master.y = p.y - yMin;
+            sp.vilasMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
             sp.repaint();
         }
         colorRed = false;
