@@ -489,6 +489,7 @@ public class Master extends JFrame {
                     if (conCuts == null) {
                         System.err.println("Attempt to optimize failed.");
                         System.exit(-1);
+                    }
                 }
                 else
                 {
