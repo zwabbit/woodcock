@@ -28,7 +28,7 @@ public class WCConservation {
     public PriorityQueue<Patch> habitatZone;
     public PriorityQueue<Patch> habitatCandidates;
     public HashMap<List<Integer>, Patch> candidateMap;
-    public HashMap<List<Integer>, Patch> habitatMap;
+    public static HashMap<List<Integer>, Patch> habitatMap;
     public static final int requiredHabitats = 40;
     public int alreadySuitable = 0;
     

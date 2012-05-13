@@ -52,7 +52,10 @@ public class Master extends JFrame {
     public void paint(Graphics g) {
         if(vilasMap != null)
         {
-            this.setSize(vilasMap.getHeight(), vilasMap.getWidth());
+            this.setResizable(true);
+            
+            vilasMap.getScaledInstance(4*vilasMap.getHeight(), 4*vilasMap.getWidth(), Image.SCALE_FAST);
+            this.setSize(vilasMap.getHeight()*4, vilasMap.getWidth()*4);
             repaint();
         }
         /*
@@ -358,10 +361,8 @@ public class Master extends JFrame {
         System.out.println("Done loading in files.");
 
         final Master sp = new Master();
-        sp.setVisible(true);
-        sp.setSize(1422, 1000);
-        sp.setLocation(-5, -15);
-        sp.setResizable(false);
+        sp.setVisible(colorRed);
+        sp.setLocation(100, 100);
         final ArrayList<Patch> finalForests = forestPatches;
 
         // Comparator for both PQueue
@@ -455,20 +456,21 @@ public class Master extends JFrame {
         }
         int newHeight = yMax - yMin;
         int newWidth = xMax - xMin;
+        sp.setVisible(true);
         System.out.println("min. x: " + xMin + "\nmin. y: " + yMin + "\nmax. x: " + xMax + "\nmax. y: " + yMax);
         if(sp.vilasMap == null)
         {
             sp.vilasMap = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
         }
-        sp.setVisible(true);
-        sp.setSize(newWidth, newHeight);
-        sp.setLocation(-5, -15);
-        sp.setResizable(true);
-        for(Patch p : conservGroup.habitatMap.values())
-        {
-            sp.vilasMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
-            sp.repaint();
-        }
+        
+//        sp.setSize(newWidth, newHeight);
+//        sp.setLocation(-5, -15);
+//        sp.setResizable(true);
+//        for(Patch p : conservGroup.habitatMap.values())
+//        {
+//            sp.vilasMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
+//            sp.repaint();
+//        }
         colorRed = false;
         
         while (true) {
