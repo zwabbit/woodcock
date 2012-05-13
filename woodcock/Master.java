@@ -484,18 +484,11 @@ public class Master extends JFrame {
                 PriorityQueue<Patch> conCuts = null;
                 if(conservGroup.alreadySuitable < WCConservation.requiredHabitats)
                 {
-                    if (conservGroup.habitatCandidates.size() > WCConservation.requiredHabitats) {
-                        System.out.println("Need to cut: " + (WCConservation.requiredHabitats - conservGroup.alreadySuitable));
-                        conCuts = conservGroup.OptimizeCutsScenario1();
-                        if (conCuts == null) {
-                            System.err.println("Attempt to optimize failed.");
-                            System.exit(-1);
-                        }
-                        System.out.println("Number of conservation cut candidates: " + conCuts.size());
-                    } else {
-                        conCuts = conservGroup.habitatCandidates;
-                        System.err.println("Less than 40 cutting candidates found this timestep: " + conCuts.size());
-                    }
+                    System.out.println("Need to cut: " + (WCConservation.requiredHabitats - conservGroup.alreadySuitable));
+                    conCuts = conservGroup.OptimizeCutsScenario1();
+                    if (conCuts == null) {
+                        System.err.println("Attempt to optimize failed.");
+                        System.exit(-1);
                 }
                 else
                 {
