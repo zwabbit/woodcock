@@ -1,5 +1,4 @@
 alias(M,A);
-alias(Y,J);
 
 *parameter coord(M,N);
 
@@ -20,13 +19,17 @@ balance_d(M,A,N),
 calc_dist(M,A,N),
 sum_d,
 sum_subsidy,
+cap_select,
 objective_function
 ;
+
+cap_select..
+sum(M, selected(M)) =g= requiredPatches;
 
 balance_d(M,A,N)..
 dp(M,A,N) + dn(M,A,N) =e= d(M,A,N);
 
-calc_x_dist(M,A,N)..
+calc_dist(M,A,N)..
 selected(M) * coord(M,N) - selected(A) * coord(A,N) =e= dp(M,A,N) - dn(M,A,N);
 
 sum_d..

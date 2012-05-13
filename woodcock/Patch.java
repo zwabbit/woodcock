@@ -36,6 +36,7 @@ public class Patch{
         if(rand == null) rand = new Random();
         box = new AABB(this.x, this.y);
         key = Arrays.asList(this.x, this.y);
+        this.patchID = Calculation.patchIDGenerator.incrementAndGet();
     }
     
     public Patch(int x, int y, int landCover, int waterDepth, int roadLength, int soil, int canopy)
@@ -45,7 +46,7 @@ public class Patch{
         this.waterDepth = waterDepth;
         this.soil = soil;
         this.canopy = canopy;
-        this.patchID = Calculation.patchIDGenerator.getAndIncrement();
+        
     }
     
     public void generateTrees()

@@ -21,7 +21,7 @@ equations
 inside_socp_2(M),
 def_y(M,N),
 def_r(M),
-count_lower_bound(M),
+count_lower_bound,
 calc_val
 ;
 
@@ -34,7 +34,7 @@ r =G= r2(M);
 inside_socp_2(M)..
 r2(M) =C= sum(N,y(M,N));
 
-counter_lower_bound(M)..
+counter_lower_bound..
 sum(M, selected(M)) =g= requiredPatches;
 
 calc_val..

@@ -19,8 +19,14 @@ public class Calculation {
     public static final String outputModelPath = System.getProperty("user.dir") + "/src/MODEL.gms";
     public static final String outputSolPath = System.getProperty("user.dir") + "/src/MODEL.lst";
     
+    public static final String inputTemplatePathS1 = System.getProperty("user.dir") + "/src/INPUT1.gms";
+    public static final String outputModelPathS1 = System.getProperty("user.dir") + "/src/MODEL1.gms";
+    
     public static final String inputTemplatePathS4 = System.getProperty("user.dir") + "/src/INPUT3.gms";
     public static final String outputModelPathS4 = System.getProperty("user.dir") + "/src/MODEL3.gms";
+    
+    public static final String inputTemplatePathS5 = System.getProperty("user.dir") + "/src/INPUT2.gms";
+    public static final String outputModelPathS5 = System.getProperty("user.dir") + "/src/MODEL2.gms";
     
     public static double conDefaultTreeWeight[] = {0.185236008, 0.258728096, 0.556035896};
     public static double decDefaultTreeWeight[] = {0.2, 0.37, 0.43};

@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 /**
@@ -70,6 +72,7 @@ public class Master extends JFrame {
     public static ArrayList<Patch> forestPatches = null;
     static int columns;
     static int rows;
+    public static final Thread mainThread = Thread.currentThread();
 
     public static void main(String[] args) {
         // TODO code application logic here
@@ -85,16 +88,14 @@ public class Master extends JFrame {
         Charset charset = Charset.forName("US-ASCII");
         Path waterPath = Paths.get("wtdepthcmascii.txt");
         Path coverPath = Paths.get("cdl2011.txt");
-        Path landPath = Paths.get("landingsuitability.txt");
+        //Path landPath = Paths.get("landingsuitability.txt");
         HashMap<List<Integer>, Patch> patches = new HashMap<>(); // update every year
-        
-        Thread mainThread = Thread.currentThread();
 
         forestPatches = new ArrayList<>();
         LinkedList<Patch> grassPatches = new LinkedList<>();
 
         int lowestDepth = Integer.MAX_VALUE;
-        HashMap<Integer, Integer> waterDepthLevels = new HashMap<>();
+        //HashMap<Integer, Integer> waterDepthLevels = new HashMap<>();
 
         // rtree for nearby water area and suitability for harvesting lumber
         waterDepth = new RTree(4, 8);
@@ -380,24 +381,8 @@ public class Master extends JFrame {
             }
         }
 
-        //sp.repaint();
-
-        System.out.println("Not suitable forest count: " + notSuitable);
-        System.out.println("forest count: " + forestPatches.size());
-        // pqueue for both lumber company and conservative group
-        PriorityQueue<Patch> lumberPQueue = lumCompany.getPQueue();
-        PriorityQueue<Patch> conserPQueue = conservGroup.getPQueue();
-        System.out.println("lumberPQueue size : " + lumberPQueue.size());
-        System.out.println("conserPQueue : " + conserPQueue.size());
-        System.out.println("Conservation cutting candidates: " + conservGroup.habitatCandidates.size());
-
-        System.out.println("forestpatches: " + forestPatches.size());
-        System.out.println("grassPatches: " + grassPatches.size());
-        // patch near water foraging area
-        System.out.println("total forest patch near water foraging area: " + countSuitablePatch);
-        System.out.println("most profit " + mostprofit + "\n least profit " + leastprofit);
-
-
+        System.out.println("Acres of non-wetland forest: " + forestPatches.size());
+        System.out.println("Acres of grassland: " + grassPatches.size());
 
         System.out.println("Generating forests.\n");
         /*
@@ -434,12 +419,20 @@ public class Master extends JFrame {
             if(InputField.clicked == false && InputField.step == false)
             {
                 try {
-                    synchronized (mainThread) {
-                        mainThread.wait();
+                    /*
+                    try {
+                        synchronized (mainThread) {
+                            mainThread.wait();
+                        }
+                    } catch (InterruptedException ex) {
+                        //Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                        continue;
                     }
+                    * 
+                    */
+                    Thread.sleep(1000);
                 } catch (InterruptedException ex) {
-                    //Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
-                    continue;
+                    Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             while (InputField.clicked == true || InputField.step == true) {
@@ -476,7 +469,8 @@ public class Master extends JFrame {
 
                 PriorityQueue<Patch> habitatCandidates;
                 conservGroup.closeToWater = 0;
-                while((habitatCandidates = conservGroup.CheckForestSuitability(finalForests)).size() < WCConservation.requiredHabitats)
+                conservGroup.alreadySuitable = 0;
+                while((habitatCandidates = conservGroup.CheckForestSuitability()).size() + conservGroup.alreadySuitable < WCConservation.requiredHabitats)
                 {
                     System.err.println("Error: failed to locate enough patches to cut.");
                     System.err.println("Current size: " + habitatCandidates.size());
@@ -486,25 +480,34 @@ public class Master extends JFrame {
                 
                 System.out.println("Habitat candidates: " + conservGroup.habitatCandidates.size());
 
-                PriorityQueue<Patch> conCuts;
-                if (conservGroup.habitatCandidates.size() > WCConservation.requiredHabitats) {
-                    conCuts = conservGroup.optimizeCuts();
-                    if(conCuts == null)
-                    {
-                        System.err.println("Attempt to optimize failed.");
-                        System.exit(-1);
+                System.out.println("Model generated, waiting.");
+                PriorityQueue<Patch> conCuts = null;
+                if(conservGroup.alreadySuitable < WCConservation.requiredHabitats)
+                {
+                    if (conservGroup.habitatCandidates.size() > WCConservation.requiredHabitats) {
+                        System.out.println("Need to cut: " + (WCConservation.requiredHabitats - conservGroup.alreadySuitable));
+                        conCuts = conservGroup.OptimizeCutsScenario1();
+                        if (conCuts == null) {
+                            System.err.println("Attempt to optimize failed.");
+                            System.exit(-1);
+                        }
+                        System.out.println("Number of conservation cut candidates: " + conCuts.size());
+                    } else {
+                        conCuts = conservGroup.habitatCandidates;
+                        System.err.println("Less than 40 cutting candidates found this timestep: " + conCuts.size());
                     }
-                    System.out.println("Number of conservation cut candidates: " + conCuts.size());
-                } else {
-                    conCuts = conservGroup.habitatCandidates;
-                    System.err.println("Less than 41 cutting candidates found this timestep: " + conCuts.size());
                 }
+                else
+                {
+                    System.out.println("Did not need to cut this year.");
+                }
+                
                 double totalCutValue = 0;
                 
                 switch(currentScenario)
                 {
                     case S1:
-                        totalCutValue = lumCompany.ClearCut(conCuts);
+                        if(conCuts != null) totalCutValue = lumCompany.ClearCut(conCuts);
                         break;
                     case S2:
                         lumCompany.ClearTimberList();

@@ -91,7 +91,16 @@ public class LumberCompany {
     }
     
     public int ConservationHarvested(PriorityQueue<Patch> candidates, PriorityQueue<Patch> cutSelect)
-    {
+    {     
+        double currentValue = 0;
+        if(candidates == null)
+        {
+            while(cutSelect.size() < harvestLimit && currentValue < MIN_VALUE)
+            {
+                PriorityQueue<Patch> lumClone = new PriorityQueue<>(lumberCandidates);
+                cutSelect.add(lumClone.remove());
+            }
+        }
         if(CalcProfit(candidates) >= harvestQuota)
         {
             cutSelect.addAll(candidates);
@@ -99,11 +108,9 @@ public class LumberCompany {
         }
         
         PriorityQueue<Patch> canClone = new PriorityQueue<>(candidates);        //Conservation candidates
-        PriorityQueue<Patch> lumClone = new PriorityQueue<>(lumberCandidates);  //Preferred lumber candidates
+        PriorityQueue<Patch> lumClone = new PriorityQueue<>(lumberCandidates);  //Preferred lumber candidates  
         
         int cut = 0;
-        
-        double currentValue = 0;
         int cutCon = 0;
         HashMap<List<Integer>, Patch> alreadyPopped = new HashMap<>();
         while(cut < harvestLimit && lumClone.size() > 0)
