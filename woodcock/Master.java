@@ -7,6 +7,7 @@ package woodcock;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,19 +45,23 @@ public class Master extends JFrame {
         super("Vilas County Forest Map");
         //JScrollPane jp = new JScrollPane();
         vilasMap = null;
+        originalMap = null;
     }
     
-    public BufferedImage vilasMap;
+    public Image vilasMap;
+    public BufferedImage originalMap;
+    Insets insets;
 
     @Override
     public void paint(Graphics g) {
-        if(vilasMap != null)
+        if(originalMap != null)
         {
             this.setResizable(true);
             
-            vilasMap.getScaledInstance(4*vilasMap.getHeight(), 4*vilasMap.getWidth(), Image.SCALE_FAST);
-            this.setSize(vilasMap.getHeight()*4, vilasMap.getWidth()*4);
-            repaint();
+            vilasMap = originalMap.getScaledInstance(4*originalMap.getHeight(), 4*originalMap.getWidth(), Image.SCALE_FAST);
+            this.setSize(originalMap.getHeight()*4, originalMap.getWidth()*4);
+            insets = getInsets();
+            g.drawImage(vilasMap, insets.left, insets.top, rootPane);
         }
         /*
         if (colorRed == false) {
@@ -458,9 +463,9 @@ public class Master extends JFrame {
         int newWidth = xMax - xMin;
         sp.setVisible(true);
         System.out.println("min. x: " + xMin + "\nmin. y: " + yMin + "\nmax. x: " + xMax + "\nmax. y: " + yMax);
-        if(sp.vilasMap == null)
+        if(sp.originalMap == null)
         {
-            sp.vilasMap = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+            sp.originalMap = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
         }
         
 //        sp.setSize(newWidth, newHeight);
