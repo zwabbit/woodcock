@@ -25,6 +25,7 @@ public class Master extends JFrame {
 
     public static int x, y, color;
     public static boolean DEBUG_FLAG = false;
+    public static boolean colorRed = false;
     
     public enum SCENARIOS {
         S1, //Unlimited conservation resource, all cuts directed by conservation needs.
@@ -45,23 +46,38 @@ public class Master extends JFrame {
 
     @Override
     public void paint(Graphics g) {
-        for (Patch p : forestPatches) {
-            Master.color = p.age;
-            Master.x = p.x;
-            Master.y = p.y;
+        if (colorRed == false) {
+            for (Patch p : forestPatches) {
+                Master.color = p.age;
+                Master.x = p.x;
+                Master.y = p.y;
 
-            color += 50;
-            if (color > 255) {
-                color = 255;
+                color += 110;
+                if (color > 255) {
+                    color = 255;
+                }
+                Color c = new Color(0, color, 0);
+                Graphics g1 = g;
+                g1.setColor(c);
+                //g1.drawRect(10 + x, 32 + y, 1, 1);
+                validate();
+                g1.fillRect(10 + x, 32 + y, 1, 1);
+                validate();
+                repaint();
             }
-            Color c = new Color(0, color, 0);
-            Graphics g1 = g;
-            g1.setColor(c);
-            //g1.drawRect(10 + x, 32 + y, 1, 1);
-            validate();
-            g1.fillRect(10 + x, 32 + y, 1, 1);
-            validate();
-            repaint();
+        } else {
+                color += 130;
+                if (color > 255) {
+                    color = 255;
+                }
+                Color c = new Color(color, 0, 0);
+                Graphics g1 = g;
+                g1.setColor(c);
+                //g1.drawRect(10 + x, 32 + y, 1, 1);
+                validate();
+                g1.fillRect(10 + x, 32 + y, 10, 10);
+                validate();
+                repaint();
         }
     }
     public static RTree waterDepth = null;
@@ -412,6 +428,34 @@ public class Master extends JFrame {
                 System.out.println("3");
         }
         System.out.println();
+        
+        colorRed = true;
+        int xMin = Integer.MAX_VALUE;
+        int xMax = 0;
+        int yMin = xMin;
+        int yMax = 0;
+        for (Patch p : conservGroup.habitatMap.values()) {
+                Master.color = p.age;
+                if(xMin > p.x) xMin = p.x;
+                if(xMax < p.x) xMax = p.x;
+                if(yMin > p.y) yMin = p.y;
+                if(yMax < p.y) yMax = p.y;
+                
+        }
+        int newHeight = yMax - yMin;
+        int newWidth = xMax - xMin;
+        System.out.println("min. x: " + xMin + "\nmin. y: " + yMin + "\nmax. x: " + xMax + "\nmax. y: " + yMax);
+        sp.setVisible(true);
+        sp.setSize(newWidth, newHeight);
+        sp.setLocation(-5, -15);
+        sp.setResizable(true);
+        for(Patch p : conservGroup.habitatMap.values())
+        {
+            Master.x = p.x - xMin;
+            Master.y = p.y - yMin;
+            sp.repaint();
+        }
+        colorRed = false;
         
         while (true) {
             // clicked means go; step means just step through once

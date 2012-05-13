@@ -354,7 +354,7 @@ public class WCConservation {
             NeosClient neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);
             NeosJobXml jobXml = new NeosJobXml("milp", "XpressMP", "GAMS");
             jobXml.addParam("model", modelContent.toString());
-            jobXml.addParam("email", "ziliang@cs.wisc.edu");
+            jobXml.addParam("email", "klee224@wisc.edu");
             NeosJob neosJob;
             while((neosJob = neosClient.submitJob(jobXml.toXMLString())) == null)
             {
