@@ -58,8 +58,8 @@ public class Master extends JFrame {
         {
             this.setResizable(true);
             
-            vilasMap = originalMap.getScaledInstance(4*originalMap.getHeight(), 4*originalMap.getWidth(), Image.SCALE_FAST);
-            this.setSize(originalMap.getHeight()*4, originalMap.getWidth()*4);
+            vilasMap = originalMap.getScaledInstance(4*originalMap.getWidth(), 4*originalMap.getHeight(), Image.SCALE_FAST);
+            this.setSize(originalMap.getWidth()*4, originalMap.getHeight()*4);
             insets = getInsets();
             g.drawImage(vilasMap, insets.left, insets.top, rootPane);
         }
@@ -446,7 +446,7 @@ public class Master extends JFrame {
         }
         System.out.println();
         
-        colorRed = true;
+        //colorRed = true;
         int xMin = Integer.MAX_VALUE;
         int xMax = 0;
         int yMin = xMin;
@@ -463,20 +463,22 @@ public class Master extends JFrame {
         int newWidth = xMax - xMin;
         sp.setVisible(true);
         System.out.println("min. x: " + xMin + "\nmin. y: " + yMin + "\nmax. x: " + xMax + "\nmax. y: " + yMax);
+        System.out.println("new height: " + newHeight + "\nnewWidth: " + newWidth);
         if(sp.originalMap == null)
         {
-            sp.originalMap = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+            sp.originalMap = new BufferedImage(newWidth + 1, newHeight + 1, BufferedImage.TYPE_INT_RGB);
         }
-        
+         //sp.repaint();
 //        sp.setSize(newWidth, newHeight);
 //        sp.setLocation(-5, -15);
 //        sp.setResizable(true);
-//        for(Patch p : conservGroup.habitatMap.values())
-//        {
-//            sp.vilasMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
-//            sp.repaint();
-//        }
-        colorRed = false;
+        for(Patch p : conservGroup.habitatMap.values())
+        {
+            sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
+            //sp.repaint();
+        }
+        sp.repaint();
+        //colorRed = false;
         
         while (true) {
             // clicked means go; step means just step through once
