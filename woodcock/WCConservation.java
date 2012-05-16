@@ -51,6 +51,11 @@ public class WCConservation {
     private StringBuilder modelTemplateS1;
     private StringBuilder modelTemplateS4;
     private StringBuilder modelTemplateS5;
+    private StringBuilder modelTemplateS6;
+    
+    private StringBuilder distTemplate;
+    
+    NeosClient neosClient;
 
     public WCConservation(int forestPatchSize) {
         comparator = new PatchLumberComparator();
@@ -60,10 +65,16 @@ public class WCConservation {
         candidateMap = new HashMap<>();
         habitatMap = new HashMap<>();
         selectFreq = new HashMap<>();
+        
+        neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);
+        
         modelTemplate = new StringBuilder();
         modelTemplateS1 = new StringBuilder();
         modelTemplateS4 = new StringBuilder();
         modelTemplateS5 = new StringBuilder();
+        modelTemplateS6 = new StringBuilder();
+        
+        distTemplate = new StringBuilder();
         
         Scanner scanner; 
         try {
@@ -86,6 +97,14 @@ public class WCConservation {
             scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePathS5), "US-ASCII");
             while(scanner.hasNextLine())
                 modelTemplateS5.append(scanner.nextLine()).append("\n");
+            
+            scanner = new Scanner(new FileInputStream(Calculation.inputTemplatePathS6), "US-ASCII");
+            while(scanner.hasNextLine())
+                modelTemplateS6.append(scanner.nextLine()).append("\n");
+            
+            scanner = new Scanner(new FileInputStream(Calculation.inputDistPath), "US-ASCII");
+            while(scanner.hasNextLine())
+                distTemplate.append(scanner.nextLine()).append("\n");
         } catch (FileNotFoundException ex) {
             //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("FATAL: Failed to read in model file.");
@@ -104,8 +123,13 @@ public class WCConservation {
         */
     }
     
+    int tFFW = 0;
+    int tFFF = 0;
+    
     public PriorityQueue<Patch> CheckForestSuitability()
     {
+        tFFW = 0;
+        tFFF = 0;
         for(Patch p : habitatMap.values())
         {
             checkSuitability(p);
@@ -115,6 +139,8 @@ public class WCConservation {
         {
             waterDist += 25;
             System.err.println("Water distance increased to: " + waterDist);
+            System.err.println("Too far from water: " + tFFW);
+            System.err.println("Too far from forest: " + tFFF);
         }
         
         return habitatCandidates;
@@ -140,12 +166,14 @@ public class WCConservation {
         if (Calculation.rangeQuery(Master.waterDepth, x, y, waterDist) == null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too far from wet area.");
+            ++tFFW;
             return false;
         }
         ++closeToWater;
         if(Calculation.rangeQuery(Master.youngForests, x, y, 1) == null)
         {
             if(Master.DEBUG_FLAG) System.err.println("Too far from young forest.");
+            ++tFFF;
             return false;
         }
         /*
@@ -436,7 +464,7 @@ public class WCConservation {
         return cutCandidates;
     }
     
-    public PriorityQueue<Patch> OptimizeCutsScenario4()
+    public PriorityQueue<Patch> bOptimizeCutsScenario4()
     {
         String results;
         StringBuilder modelContent = new StringBuilder();
@@ -507,7 +535,7 @@ public class WCConservation {
         return cutCandidates;
     }
     
-    public PriorityQueue<Patch> OptimizeCutsScenario5()
+    public PriorityQueue<Patch> bOptimizeCutsScenario5()
     {
         String results;
         StringBuilder modelContent = new StringBuilder();
@@ -561,7 +589,6 @@ public class WCConservation {
     public PriorityQueue<Patch> OptimizeCutsScenario1()
     {
         StringBuilder resultsBuilder = new StringBuilder();
-        String results;
         StringBuilder modelContent = new StringBuilder();
         HashMap<Integer, Patch> candidateIDMap = new HashMap<>();
 
@@ -637,42 +664,31 @@ public class WCConservation {
             System.err.println("Error: running GAMS locally failed: " + ex.getMessage());
         }
         
+        SolutionParser parser;
+        
         if(resultsBuilder.length() == 0)
         {
-            NeosClient neosClient = new NeosClient(Calculation.NEOS_HOST, Calculation.NEOS_PORT);
             NeosJobXml jobXml = new NeosJobXml("milp", "gurobi", "GAMS");
             jobXml.addParam("model", modelContent.toString());
-            NeosJob neosJob;
-            while((neosJob = neosClient.submitJob(jobXml.toXMLString())) == null)
+            parser = NeosSubmit(jobXml);
+            if(parser == null)
             {
-                System.err.println("Error: failed to submit job to NEOS.");
+                System.err.println("Error submitting results to NEOS.");
+                return null;
             }
-            
-            System.out.println("Job ID: " + neosJob.getJobNo());
-            System.out.println("Job password: " + neosJob.getJobPass());
-            results = neosJob.getResult();
         }
         else
         {
-            results = resultsBuilder.toString();
+            parser = new SolutionParser(resultsBuilder.toString());
         }
-        
-        if(results.isEmpty())
-        {
-            System.err.println("Error submitting results to NEOS.");
-            return null;
-        }
+
         try (FileWriter solWriter = new FileWriter(Calculation.outputSolPath))
         {
-            solWriter.write(results);
+            solWriter.write(parser.toString());
             solWriter.close();
         } catch (IOException ex) {
             Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        SolutionParser parser = new SolutionParser(results);
-        if(parser.getModelStatusCode() != 8 && parser.getModelStatusCode() != 1)
-            return null;
         
         cutCandidates.clear();
         SolutionData bCut = parser.getSymbol("selected", SolutionData.VAR, 1);
@@ -688,20 +704,13 @@ public class WCConservation {
             }
         }
         
-        int uniqeCount = 0;
-        for(Integer sFreq : selectFreq.values())
-        {
-            if(sFreq == 1) ++uniqeCount;
-        }
-        
-        System.out.println("Current number of uniquely selected patches: " + uniqeCount);
-        
         double totalCost = parser.getObjective();
         
         System.out.println("Total subsidy cost: " + totalCost);
         
         if(cutCandidates.size() < requiredHabitats)
         {
+            System.err.println("Bugged optimization.");
             try (FileWriter modelFile = new FileWriter(Calculation.outputModelPath)) {
                 modelFile.write(modelContent.toString());
             }
@@ -709,6 +718,8 @@ public class WCConservation {
             {
                 
             }
+            
+            System.exit(-1);
         }
         
         return cutCandidates;
@@ -718,5 +729,421 @@ public class WCConservation {
     {
         this.alreadySuitable = 0;
         return OptimizeCutsScenario1();
+    }
+    
+    public PriorityQueue<Patch> OptimizeCutsScenario3()
+    {
+        HashMap<Integer, Patch> candidateIDMap = new HashMap<>();
+        StringBuilder modelContent = new StringBuilder();
+        SolutionParser parser;
+        org.neos.gams.Set patchSet = new org.neos.gams.Set("M", "patches");
+        org.neos.gams.Set dimSet = new org.neos.gams.Set("N", "dimensions");
+
+        Parameter subsidy = new Parameter("subsidy(M)", "subsidy cost");
+        Parameter coord = new Parameter("coord(M,N)", "coordinates");
+
+        dimSet.addValue("0");
+        dimSet.addValue("1");
+
+        for (Patch p : habitatCandidates) {
+            String pID = String.valueOf(p.patchID);
+            patchSet.addValue(pID);
+            int subsidyCost = 50 - p.age;
+            if (subsidyCost < 0) {
+                subsidyCost = 0;
+            }
+            subsidy.add(pID, String.valueOf(subsidyCost));
+            candidateIDMap.put(p.patchID, p);
+            coord.add(pID + ".0", String.valueOf(p.x));
+            coord.add(pID + ".1", String.valueOf(p.y));
+        }
+        Scalar minVal =
+                new Scalar(
+                "minVal",
+                "Minimally acceptable value",
+                String.valueOf(LumberCompany.MIN_VALUE));
+        Scalar required =
+                new Scalar(
+                "requiredPatches",
+                "Required number of patches to cut",
+                String.valueOf(requiredHabitats - alreadySuitable));
+
+
+        modelContent.append("$offdigit").append("\n");
+        modelContent.append(patchSet.toString()).append("\n");
+        modelContent.append(dimSet.toString()).append("\n");
+        modelContent.append(subsidy.toString()).append("\n");
+        modelContent.append(coord.toString()).append("\n");
+        //modelContent.append(isCandidate.toString()).append("\n");
+        modelContent.append(minVal.toString()).append("\n");
+        modelContent.append(required.toString()).append("\n");
+        modelContent.append(modelTemplateS1);
+        
+        NeosJobXml jobXml = new NeosJobXml("milp", "gurobi", "GAMS");
+        jobXml.addParam("model", modelContent.toString());
+        parser = NeosSubmit(jobXml);
+        
+        cutCandidates.clear();
+        SolutionData bCut = parser.getSymbol("selected", SolutionData.VAR, 1);
+
+        int cumulativeAge = 0;
+        for (SolutionRow sRow : bCut.getRows()) {
+            int level = sRow.getLevel().intValue();
+            if (level == 1) {
+                int pID = Integer.valueOf(sRow.getIndex(0));
+                Patch cutPatch = candidateIDMap.get(pID);
+                cumulativeAge += cutPatch.age;
+                if (cutPatch != null) {
+                    cutCandidates.add(cutPatch);
+                }
+            }
+        }
+
+        double shortAge = parser.getObjective();
+
+        System.out.println("Total subsidy cost: " + shortAge);
+        System.out.println("Cumulative age: " + cumulativeAge);
+
+        if (cutCandidates.size() < requiredHabitats) {
+            System.err.println("Bugged optimization.");
+            try (FileWriter modelFile = new FileWriter(Calculation.outputModelPath)) {
+                modelFile.write(modelContent.toString());
+            } catch (IOException ioe) {
+            }
+
+            System.exit(-1);
+        }
+        
+        return cutCandidates;
+    }
+    
+    public PriorityQueue<Patch> OptimizeCutsScenario4()
+    {
+        StringBuilder resultsBuilder = new StringBuilder();
+        StringBuilder modelContent = new StringBuilder();
+        HashMap<Integer, Patch> candidateIDMap = new HashMap<>();
+
+        try {
+            org.neos.gams.Set patchSet = new org.neos.gams.Set("M", "patches");
+
+            Parameter subsidy = new Parameter("subsidy(M)", "subsidy cost");
+
+            for (Patch p : habitatCandidates) {
+                String pID = String.valueOf(p.patchID);
+                patchSet.addValue(pID);
+
+                subsidy.add(pID, String.valueOf(p.lumberProfit));
+                candidateIDMap.put(p.patchID, p);
+            }
+            Scalar minVal =
+                    new Scalar(
+                    "minVal",
+                    "Minimally acceptable value",
+                    String.valueOf(LumberCompany.MIN_VALUE));
+            Scalar required =
+                    new Scalar(
+                    "requiredPatches",
+                    "Required number of patches to cut",
+                    String.valueOf(requiredHabitats));
+
+
+            modelContent.append("$offdigit").append("\n");
+            modelContent.append(patchSet.toString()).append("\n");
+            modelContent.append(subsidy.toString()).append("\n");
+            //modelContent.append(isCandidate.toString()).append("\n");
+            modelContent.append(minVal.toString()).append("\n");
+            modelContent.append(required.toString()).append("\n");
+            modelContent.append(modelTemplateS6);
+            
+            if(Master.DEBUG_FLAG)
+            {
+                try (FileWriter modelFile = new FileWriter(Calculation.outputModelPathS6)) {
+                    modelFile.write(modelContent.toString());
+                    modelFile.close();
+                }
+            }
+            
+            if (hasGams) {
+                ProcessBuilder pBuilder = new ProcessBuilder("gams");
+                Process gamsProcess = pBuilder.start();
+                BufferedReader gamsReader =
+                        new BufferedReader(new InputStreamReader(gamsProcess.getInputStream()));
+                try {
+                    gamsProcess.waitFor();
+                } catch (InterruptedException ex) {
+                    //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
+                    System.err.println(ex.getMessage());
+                }
+                String line;
+                while ((line = gamsReader.readLine()) != null) {
+                    resultsBuilder.append(line).append("\n");
+                }
+            }
+        } catch(IOException ex) {
+            System.err.println("Error: running GAMS locally failed: " + ex.getMessage());
+        }
+        
+        SolutionParser parser;
+        
+        if(resultsBuilder.length() == 0)
+        {
+            NeosJobXml jobXml = new NeosJobXml("milp", "gurobi", "GAMS");
+            jobXml.addParam("model", modelContent.toString());
+            parser = NeosSubmit(jobXml);
+            if(parser == null)
+            {
+                System.err.println("Error submitting results to NEOS.");
+                return null;
+            }
+        }
+        else
+        {
+            parser = new SolutionParser(resultsBuilder.toString());
+        }
+
+        try (FileWriter solWriter = new FileWriter(Calculation.outputSolPath))
+        {
+            solWriter.write(parser.toString());
+            solWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        cutCandidates.clear();
+        SolutionData bCut = parser.getSymbol("selected", SolutionData.VAR, 1);
+        
+        for (SolutionRow sRow : bCut.getRows()) {
+            int level = sRow.getLevel().intValue();
+            if (level == 1) {
+                int pID = Integer.valueOf(sRow.getIndex(0));
+                Patch cutPatch = candidateIDMap.get(pID);
+                if (cutPatch != null) {
+                    cutCandidates.add(cutPatch);
+                }
+            }
+        }
+        
+        double totalCost = 0;
+        
+        for(Patch p : cutCandidates)
+        {
+            double sub = 250 - p.lumberProfit;
+            if(sub < 0)
+                sub = 0;
+            totalCost += sub;
+        }
+        
+        System.out.println("Total subsidy cost: " + totalCost);
+        
+        if(cutCandidates.size() != requiredHabitats)
+        {
+            System.err.println("Bugged optimization.");
+            try (FileWriter modelFile = new FileWriter(Calculation.outputModelPathS6)) {
+                modelFile.write(modelContent.toString());
+            }
+            catch(IOException ioe)
+            {
+                
+            }
+            
+            System.exit(-1);
+        }
+        
+        return cutCandidates;
+    }
+    
+    public PriorityQueue<Patch> OptimizeCutsScenario5()
+    {
+        StringBuilder resultsBuilder = new StringBuilder();
+        StringBuilder modelContent = new StringBuilder();
+        HashMap<Integer, Patch> candidateIDMap = new HashMap<>();
+
+        try {
+            org.neos.gams.Set patchSet = new org.neos.gams.Set("M", "patches");
+
+            Parameter subsidy = new Parameter("subsidy(M)", "subsidy cost");
+
+            for (Patch p : habitatCandidates) {
+                String pID = String.valueOf(p.patchID);
+                patchSet.addValue(pID);
+
+                subsidy.add(pID, String.valueOf(p.age));
+                candidateIDMap.put(p.patchID, p);
+            }
+            Scalar minVal =
+                    new Scalar(
+                    "minVal",
+                    "Minimally acceptable value",
+                    String.valueOf(LumberCompany.MIN_VALUE));
+            Scalar required =
+                    new Scalar(
+                    "requiredPatches",
+                    "Required number of patches to cut",
+                    String.valueOf(requiredHabitats));
+
+
+            modelContent.append("$offdigit").append("\n");
+            modelContent.append(patchSet.toString()).append("\n");
+            modelContent.append(subsidy.toString()).append("\n");
+            //modelContent.append(isCandidate.toString()).append("\n");
+            modelContent.append(minVal.toString()).append("\n");
+            modelContent.append(required.toString()).append("\n");
+            modelContent.append(modelTemplateS6);
+            
+            if(Master.DEBUG_FLAG)
+            {
+                try (FileWriter modelFile = new FileWriter(Calculation.outputModelPathS6)) {
+                    modelFile.write(modelContent.toString());
+                    modelFile.close();
+                }
+            }
+            
+            if (hasGams) {
+                ProcessBuilder pBuilder = new ProcessBuilder("gams");
+                Process gamsProcess = pBuilder.start();
+                BufferedReader gamsReader =
+                        new BufferedReader(new InputStreamReader(gamsProcess.getInputStream()));
+                try {
+                    gamsProcess.waitFor();
+                } catch (InterruptedException ex) {
+                    //Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
+                    System.err.println(ex.getMessage());
+                }
+                String line;
+                while ((line = gamsReader.readLine()) != null) {
+                    resultsBuilder.append(line).append("\n");
+                }
+            }
+        } catch(IOException ex) {
+            System.err.println("Error: running GAMS locally failed: " + ex.getMessage());
+        }
+        
+        SolutionParser parser;
+        
+        if(resultsBuilder.length() == 0)
+        {
+            NeosJobXml jobXml = new NeosJobXml("milp", "gurobi", "GAMS");
+            jobXml.addParam("model", modelContent.toString());
+            parser = NeosSubmit(jobXml);
+            if(parser == null)
+            {
+                System.err.println("Error submitting results to NEOS.");
+                return null;
+            }
+        }
+        else
+        {
+            parser = new SolutionParser(resultsBuilder.toString());
+        }
+
+        try (FileWriter solWriter = new FileWriter(Calculation.outputSolPath))
+        {
+            solWriter.write(parser.toString());
+            solWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(WCConservation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        cutCandidates.clear();
+        SolutionData bCut = parser.getSymbol("selected", SolutionData.VAR, 1);
+        
+        for (SolutionRow sRow : bCut.getRows()) {
+            int level = sRow.getLevel().intValue();
+            if (level == 1) {
+                int pID = Integer.valueOf(sRow.getIndex(0));
+                Patch cutPatch = candidateIDMap.get(pID);
+                if (cutPatch != null) {
+                    cutCandidates.add(cutPatch);
+                }
+            }
+        }
+        
+        double totalCost = 0;
+        
+        for(Patch p : cutCandidates)
+        {
+            double sub = 250 - p.lumberProfit;
+            if(sub < 0)
+                sub = 0;
+            totalCost += sub;
+        }
+        
+        System.out.println("Total subsidy cost: " + totalCost);
+        
+        if(cutCandidates.size() != requiredHabitats)
+        {
+            System.err.println("Bugged optimization.");
+            try (FileWriter modelFile = new FileWriter(Calculation.outputModelPathS6)) {
+                modelFile.write(modelContent.toString());
+            }
+            catch(IOException ioe)
+            {
+                
+            }
+            
+            System.exit(-1);
+        }
+        
+        return cutCandidates;
+    }
+    
+    public double CheckDistances(PriorityQueue<Patch> cutTargets)
+    {
+        StringBuilder modelContent = new StringBuilder();
+        org.neos.gams.Set patchSet = new org.neos.gams.Set("M", "patches");
+        org.neos.gams.Set dimSet = new org.neos.gams.Set("N", "dimensions");
+        
+        dimSet.addValue("0");
+        dimSet.addValue("1");
+
+        Parameter coord = new Parameter("coord(M,N)", "coordinates");
+        
+        for (Patch p : cutTargets) {
+            String pID = String.valueOf(p.patchID);
+            patchSet.addValue(pID);
+            double subsidyCost = 250 - p.lumberProfit;
+            if (subsidyCost < 0) {
+                subsidyCost = 0;
+            }
+
+            coord.add(pID + ".0", String.valueOf(p.x));
+            coord.add(pID + ".1", String.valueOf(p.y));
+        }
+        
+        modelContent.append("$offdigit").append("\n");
+        modelContent.append(patchSet.toString()).append("\n");
+        modelContent.append(dimSet.toString()).append("\n");
+        modelContent.append(coord.toString()).append("\n");
+        modelContent.append(distTemplate);
+        
+        NeosJobXml jobXml = new NeosJobXml("socp", "mosek", "GAMS");
+        jobXml.addParam("model", modelContent.toString());
+        
+        SolutionParser parser = NeosSubmit(jobXml);
+        if(parser == null)
+            return 0;
+        
+        double solution = parser.getObjective();
+        
+        return solution;
+    }
+    
+    private SolutionParser NeosSubmit(NeosJobXml jobXml)
+    {
+        String results;
+        NeosJob neosJob;
+        while ((neosJob = neosClient.submitJob(jobXml.toXMLString())) == null) {
+            System.err.println("Error: failed to submit job to NEOS.");
+        }
+        
+        System.out.println("Job ID: " + neosJob.getJobNo());
+        System.out.println("Job password: " + neosJob.getJobPass());
+        results = neosJob.getResult();
+        
+        SolutionParser parser = new SolutionParser(results);
+        if(parser.getModelStatusCode() != 8 && parser.getModelStatusCode() != 1)
+            return null;
+        
+        return parser;
     }
 }

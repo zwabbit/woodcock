@@ -208,7 +208,7 @@ public class LumberCompany {
         return cutCon;
     }
     
-    public double CalcProfit(PriorityQueue<Patch> patches)
+    public static double CalcProfit(PriorityQueue<Patch> patches)
     {
         if(patches == null)
             return 0;

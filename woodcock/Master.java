@@ -35,12 +35,12 @@ public class Master extends JFrame {
     public enum SCENARIOS {
         S1, //Unlimited conservation resource, all cuts directed by conservation needs.
         S2, //Lumber interests cut based on profit margin and harvest ability limitations.
-        S3, //Conservation groups first checks whether lumber interest will automatically create habitats without intervention.
+        S3, //Variant of S3, except desirability of a cut depends solely on forest age.
         S4, //More intelligent conservation selection model based on distance of patches from each other.
-        S5  //Variant of S4, samve objective but different optimization model.
+        S5  //Variant of S4, same objective but different optimization model.
     };
     
-    public static SCENARIOS currentScenario = SCENARIOS.S1;
+    public static SCENARIOS currentScenario = SCENARIOS.S5;
     // Function to draw patches of forest, the color changes according to age, older forest has lighter color
 
     public Master() {
@@ -516,7 +516,7 @@ public class Master extends JFrame {
                 }
             }
             while (InputField.clicked == true || InputField.step == true) {
-                for (Patch p : conservGroup.habitatMap.values()) {
+                for (Patch p : WCConservation.habitatMap.values()) {
                     sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
                     //sp.repaint();
                 }
@@ -596,6 +596,8 @@ public class Master extends JFrame {
                             } catch (IOException ex) {
                                 Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
                             }
+                            
+                            System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);
                         }
                         
                         break;
@@ -615,21 +617,144 @@ public class Master extends JFrame {
                         
                         if(conCuts != null)
                         {
-                            totalCutValue = lumCompany.ClearCut(conCuts);
+                            double distApart = conservGroup.CheckDistances(conCuts);
+                            for (Patch p : WCConservation.habitatMap.values()) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
+                                //sp.repaint();
+                            }
+                            totalCutValue = LumberCompany.CalcProfit(conCuts);
                             for (Patch p : conCuts) {
                                 sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0x006600);
                             }
+                            
+                            System.out.println("Max distance trees are apart: " + distApart * 2);
+                            System.out.println("Total value from harvested patches for timestep " + String.valueOf(tick) + " : " + totalCutValue);
 
                             File imageFile = new File(currentScenario.toString() + "-" + String.valueOf(tick) + ".png");
                             try {
                                 ImageIO.write(sp.originalMap, "png", imageFile);
                             } catch (IOException ex) {
                                 Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                                System.err.println("Failed to draw image.");
                             }
                         }
                         
+                        //break;
+                    case S3:
+                        if (conservGroup.alreadySuitable < WCConservation.requiredHabitats)
+                        {
+                            conCuts = conservGroup.OptimizeCutsScenario3();
+                            if (conCuts == null) {
+                                System.err.println("Attempt to optimize failed.");
+                                System.exit(-1);
+                            }
+                        }
+                        else
+                        {
+                            System.out.println("Did not need to cut this year.");
+                        }
+                        
+                        if(conCuts != null)
+                        {
+                            double distApart = conservGroup.CheckDistances(conCuts);
+                            totalCutValue = lumCompany.ClearCut(conCuts);
+                            for (Patch p : WCConservation.habitatMap.values()) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
+                                //sp.repaint();
+                            }
+                            for (Patch p : conCuts) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0x006600);
+                            }
+                            
+                            System.out.println("Max distance trees are apart: " + distApart * 2);
+                            System.out.println("Total value from harvested patches for timestep " + String.valueOf(tick) + " : " + totalCutValue);
+
+                            File imageFile = new File(SCENARIOS.S3.toString() + "-" + String.valueOf(tick) + ".png");
+                            try {
+                                ImageIO.write(sp.originalMap, "png", imageFile);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                                System.err.println("Failed to draw image.");
+                            }
+                        }
                         break;
                     case S4:
+                        if (conservGroup.alreadySuitable < WCConservation.requiredHabitats)
+                        {
+                            conCuts = conservGroup.OptimizeCutsScenario4();
+                            if (conCuts == null) {
+                                System.err.println("Attempt to optimize failed.");
+                                System.exit(-1);
+                            }
+                        }
+                        else
+                        {
+                            System.out.println("Did not need to cut this year.");
+                        }
+                        
+                        if(conCuts != null)
+                        {
+                            double distApart = conservGroup.CheckDistances(conCuts);
+                            for (Patch p : WCConservation.habitatMap.values()) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
+                                //sp.repaint();
+                            }
+                            totalCutValue = lumCompany.ClearCut(conCuts);
+                            for (Patch p : conCuts) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0x006600);
+                            }
+                            
+                            System.out.println("Max distance trees are apart: " + distApart * 2);
+                            System.out.println("Total value from harvested patches for timestep " + String.valueOf(tick) + " : " + totalCutValue);
+
+                            File imageFile = new File(currentScenario.toString() + "-" + String.valueOf(tick) + ".png");
+                            try {
+                                ImageIO.write(sp.originalMap, "png", imageFile);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                                System.err.println("Failed to draw image.");
+                            }
+                        }
+                        break;
+                    case S5:
+                        if (conservGroup.alreadySuitable < WCConservation.requiredHabitats)
+                        {
+                            conCuts = conservGroup.OptimizeCutsScenario4();
+                            if (conCuts == null) {
+                                System.err.println("Attempt to optimize failed.");
+                                System.exit(-1);
+                            }
+                        }
+                        else
+                        {
+                            System.out.println("Did not need to cut this year.");
+                        }
+                        
+                        if(conCuts != null)
+                        {
+                            double distApart = conservGroup.CheckDistances(conCuts);
+                            for (Patch p : WCConservation.habitatMap.values()) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
+                                //sp.repaint();
+                            }
+                            totalCutValue = lumCompany.ClearCut(conCuts);
+                            for (Patch p : conCuts) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0x006600);
+                            }
+                            
+                            System.out.println("Max distance trees are apart: " + distApart * 2);
+                            System.out.println("Total value from harvested patches for timestep " + String.valueOf(tick) + " : " + totalCutValue);
+
+                            File imageFile = new File(currentScenario.toString() + "-" + String.valueOf(tick) + ".png");
+                            try {
+                                ImageIO.write(sp.originalMap, "png", imageFile);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                                System.err.println("Failed to draw image.");
+                            }
+                        }
+                        break;
+                        /*
                         lumCompany.ClearTimberList();
                         for (Patch fPatch : forestPatches) {
                             lumCompany.queueTimberPatch(fPatch);
@@ -641,11 +766,9 @@ public class Master extends JFrame {
                         totalCutValue = lumCompany.ClearCut(actualCuts);
                         System.out.println("Actual patches cut: " + actualCuts.size());
                         break;
-                    case S3:
-                        break;
+                        */
                 }
 
-                System.out.println("Total value from harvested patches for timestep " + tick + " : " + totalCutValue);
                 System.out.println();
                 ++tick;
                 System.gc();

@@ -28,6 +28,12 @@ public class Calculation {
     public static final String inputTemplatePathS5 = System.getProperty("user.dir") + "/src/INPUT2.gms";
     public static final String outputModelPathS5 = System.getProperty("user.dir") + "/src/MODEL2.gms";
     
+    public static final String inputTemplatePathS6 = System.getProperty("user.dir") + "/src/INPUT4.gms";
+    public static final String outputModelPathS6 = System.getProperty("user.dir") + "/src/MODEL4.gms";
+    
+    public static final String inputDistPath = System.getProperty("user.dir") + "/src/INDIST.gms";
+    public static final String outputDistPath = System.getProperty("user.dir") + "/src/DIST.gms";
+    
     public static double conDefaultTreeWeight[] = {0.185236008, 0.258728096, 0.556035896};
     public static double decDefaultTreeWeight[] = {0.2, 0.37, 0.43};
     public static double mixDefaultTreeWeight[] = {0.224804403, 0.350450241, 0.424745355};
