@@ -10,6 +10,7 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -18,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 /**
@@ -477,7 +479,18 @@ public class Master extends JFrame {
             sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
             //sp.repaint();
         }
-        sp.repaint();
+        
+        if(DEBUG_FLAG)
+        {
+            File imageFile = new File("test.png");
+            try {
+                ImageIO.write(sp.originalMap, "png", imageFile);
+            } catch (IOException ex) {
+                Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        //sp.repaint();
         //colorRed = false;
         
         while (true) {
@@ -503,6 +516,10 @@ public class Master extends JFrame {
                 }
             }
             while (InputField.clicked == true || InputField.step == true) {
+                for (Patch p : conservGroup.habitatMap.values()) {
+                    sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0xFF0000);
+                    //sp.repaint();
+                }
                 // for checking purpose
                 //System.out.println("entered");
                 
@@ -549,28 +566,70 @@ public class Master extends JFrame {
 
                 System.out.println("Model generated, waiting.");
                 PriorityQueue<Patch> conCuts = null;
-                if(conservGroup.alreadySuitable < WCConservation.requiredHabitats)
-                {
-                    System.out.println("Need to cut: " + (WCConservation.requiredHabitats - conservGroup.alreadySuitable));
-                    conCuts = conservGroup.OptimizeCutsScenario1();
-                    if (conCuts == null) {
-                        System.err.println("Attempt to optimize failed.");
-                        System.exit(-1);
-                    }
-                }
-                else
-                {
-                    System.out.println("Did not need to cut this year.");
-                }
+                
                 
                 double totalCutValue = 0;
                 
                 switch(currentScenario)
                 {
                     case S1:
-                        if(conCuts != null) totalCutValue = lumCompany.ClearCut(conCuts);
+                        if (conservGroup.alreadySuitable < WCConservation.requiredHabitats) {
+                            System.out.println("Need to cut: " + (WCConservation.requiredHabitats - conservGroup.alreadySuitable));
+                            conCuts = conservGroup.OptimizeCutsScenario1();
+                            if (conCuts == null) {
+                                System.err.println("Attempt to optimize failed.");
+                                System.exit(-1);
+                            }
+                        } else {
+                            System.out.println("Did not need to cut this year.");
+                        }
+                        if(conCuts != null)
+                        {
+                            totalCutValue = lumCompany.ClearCut(conCuts);
+                            for (Patch p : conCuts) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0x006600);
+                            }
+
+                            File imageFile = new File(currentScenario.toString() + "-" + String.valueOf(tick) + ".png");
+                            try {
+                                ImageIO.write(sp.originalMap, "png", imageFile);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                        
                         break;
                     case S2:
+                        if (conservGroup.alreadySuitable < WCConservation.requiredHabitats)
+                        {
+                            conCuts = conservGroup.OptimizeCutsScenario2();
+                            if (conCuts == null) {
+                                System.err.println("Attempt to optimize failed.");
+                                System.exit(-1);
+                            }
+                        }
+                        else
+                        {
+                            System.out.println("Did not need to cut this year.");
+                        }
+                        
+                        if(conCuts != null)
+                        {
+                            totalCutValue = lumCompany.ClearCut(conCuts);
+                            for (Patch p : conCuts) {
+                                sp.originalMap.setRGB(p.x - xMin, p.y - yMin, 0x006600);
+                            }
+
+                            File imageFile = new File(currentScenario.toString() + "-" + String.valueOf(tick) + ".png");
+                            try {
+                                ImageIO.write(sp.originalMap, "png", imageFile);
+                            } catch (IOException ex) {
+                                Logger.getLogger(Master.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                        
+                        break;
+                    case S4:
                         lumCompany.ClearTimberList();
                         for (Patch fPatch : forestPatches) {
                             lumCompany.queueTimberPatch(fPatch);

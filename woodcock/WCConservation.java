@@ -713,4 +713,10 @@ public class WCConservation {
         
         return cutCandidates;
     }
+    
+    public PriorityQueue<Patch> OptimizeCutsScenario2()
+    {
+        this.alreadySuitable = 0;
+        return OptimizeCutsScenario1();
+    }
 }
